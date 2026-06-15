@@ -25,8 +25,28 @@ document.addEventListener('DOMContentLoaded', function() {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             showNoSeasonalAlert();
-        });
     });
+
+    // Controle do Carrossel Sensorial
+    const sensoryCarousel = document.getElementById('sensory-carousel');
+    const sensoryPrev = document.getElementById('sensory-prev');
+    const sensoryNext = document.getElementById('sensory-next');
+
+    if (sensoryCarousel && sensoryPrev && sensoryNext) {
+        sensoryPrev.addEventListener('click', function() {
+            sensoryCarousel.scrollBy({
+                left: -sensoryCarousel.offsetWidth * 0.6,
+                behavior: 'smooth'
+            });
+        });
+
+        sensoryNext.addEventListener('click', function() {
+            sensoryCarousel.scrollBy({
+                left: sensoryCarousel.offsetWidth * 0.6,
+                behavior: 'smooth'
+            });
+        });
+    }
 });
 
 // Exibe o Toast informativo público quando não há sazonalidades ativas
