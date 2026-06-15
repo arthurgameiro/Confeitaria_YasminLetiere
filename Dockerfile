@@ -5,7 +5,9 @@ WORKDIR /app
 # Copiar arquivos de projeto e restaurar dependências (otimização de cache do Docker)
 COPY YasminLetiereConfeitaria.slnx ./
 COPY src/YasminLetiereConfeitaria.Domain/YasminLetiereConfeitaria.Domain.csproj src/YasminLetiereConfeitaria.Domain/
+COPY src/YasminLetiereConfeitaria.Application/YasminLetiereConfeitaria.Application.csproj src/YasminLetiereConfeitaria.Application/
 COPY src/YasminLetiereConfeitaria.Infrastructure/YasminLetiereConfeitaria.Infrastructure.csproj src/YasminLetiereConfeitaria.Infrastructure/
+COPY src/YasminLetiereConfeitaria.Presentation/YasminLetiereConfeitaria.Presentation.csproj src/YasminLetiereConfeitaria.Presentation/
 COPY src/YasminLetiereConfeitaria.Web/YasminLetiereConfeitaria.Web.csproj src/YasminLetiereConfeitaria.Web/
 
 RUN dotnet restore
