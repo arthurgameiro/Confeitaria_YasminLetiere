@@ -1,0 +1,138 @@
+@{
+    ViewData["Title"] = "Adicionar Produto";
+    var categories = ViewBag.Categories as IEnumerable<YasminLetiereConfeitaria.Domain.Entities.Category>;
+    var seasons = ViewBag.Seasons as IEnumerable<YasminLetiereConfeitaria.Domain.Entities.Sazonalidade>;
+}
+
+<section class="admin-page container">
+    <div class="admin-form-card">
+        <div class="form-header">
+            <span class="section-tag">Novo Doce</span>
+            <h1 class="page-title">Adicionar Doce ao Cardápio</h1>
+            <p>Cadastre um novo doce especificando o preço e se ele é sazonal.</p>
+        </div>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <span class="material-icons">error</span>
+                <div asp-validation-summary="All">Preencha os campos obrigatórios.</div>
+            </div>
+        }
+
+        <form action="/admin/create" method="post" enctype="multipart/form-data" class="admin-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="name">Nome do Doce *</label>
+                    <input type="text" id="name" name="name" placeholder="Ex: Bolo de Pistache Gourmet" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="price">Preço de Venda (R$) *</label>
+                    <input type="number" id="price" name="price" step="0.01" min="0" placeholder="Ex: 89.90" required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Descrição Apetitosa (Ingredientes e detalhes) *</label>
+                <textarea id="description" name="description" rows="4" placeholder="Ex: Massa de baunilha fofinha recheada com brigadeiro de pistache e geleia de framboesa..." required></textarea>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="categoryId">Categoria *</label>
+                    <select id="categoryId" name="categoryId" required>
+                        <option value="">Selecione uma Categoria...</option>
+                        @if (categories != null)
+                        {
+                            foreach (var cat in categories)
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="seasonalTag">Sazonalidade (Período especial)</label>
+                    <select id="seasonalTag" name="seasonalTag">
+                        <option value="">Nenhum (Cardápio Fixo)</option>
+                        @if (seasons != null)
+                        {
+                            foreach (var s in seasons)
+                            {
+                                var emoji = !string.IsNullOrEmpty(s.Icone) ? s.Icone :
+                                            s.Nome == "Páscoa" ? "🐇" :
+                                            s.Nome == "Natal" ? "🎄" :
+                                            s.Nome == "Namorados" ? "💖" : "✨";
+                                <option value="@s.Nome">@s.Nome @emoji</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Foto do Produto (Arraste ou Clique para Selecionar) *</label>
+                <div class="drag-drop-zone" id="dropZone" onclick="document.getElementById('imageFile').click()">
+                    <span class="material-icons upload-icon">cloud_upload</span>
+                    <p class="upload-text">Arraste e solte uma imagem aqui ou clique para selecionar</p>
+                    <input type="file" id="imageFile" name="imageFile" accept="image/*" style="display:none;" onchange="previewImage(this)" />
+                    <img id="imagePreview" class="preview-thumb" src="" alt="Previsualização" style="display:none;" />
+                </div>
+                <input type="hidden" id="imageUrl" name="imageUrl" value="" />
+                <small class="form-help">Selecione apenas 1 foto por produto.</small>
+            </div>
+
+            <div class="form-actions-row">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <span class="material-icons">arrow_back</span> Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <span class="material-icons">save</span> Salvar Produto
+                </button>
+            </div>
+        </form>
+
+        <script>
+            function previewImage(input) {
+                const file = input.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const preview = document.getElementById('imagePreview');
+                        const text = document.querySelector('.upload-text');
+                        const icon = document.querySelector('.upload-icon');
+                        
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                        text.style.display = 'none';
+                        icon.style.display = 'none';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+
+            const dropZone = document.getElementById('dropZone');
+            if (dropZone) {
+                dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add('dragover');
+                });
+                dropZone.addEventListener('dragleave', () => {
+                    dropZone.classList.remove('dragover');
+                });
+                dropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('dragover');
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        const fileInput = document.getElementById('imageFile');
+                        fileInput.files = files;
+                        previewImage(fileInput);
+                    }
+                });
+            }
+        </script>
+    </div>
+</section>

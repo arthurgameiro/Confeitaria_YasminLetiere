@@ -1,0 +1,124 @@
+@model IEnumerable<YasminLetiereConfeitaria.Domain.Entities.Product>
+
+@{
+    var activeSeason = ViewBag.ActiveSeason as string ?? "Páscoa";
+    ViewData["Title"] = $"Cardápio Especial de {activeSeason}";
+    
+    // Configura o emoji da estação
+    var seasonEmoji = activeSeason == "Páscoa" ? "🐇" : activeSeason == "Natal" ? "🎄" : "💖";
+    var seasonBannerClass = activeSeason == "Páscoa" ? "sazonal-banner-easter" : activeSeason == "Natal" ? "sazonal-banner-christmas" : "sazonal-banner-val";
+}
+
+<!-- Seasonal Hero Header -->
+<section class="menu-page-header seasonal-header @seasonBannerClass">
+    <div class="hero-overlay"></div>
+    <div class="container text-center relative-z">
+        <span class="seasonal-tag-badge">Edição Especial Limitada @seasonEmoji</span>
+        <h1 class="page-title font-cream">Cardápio de @activeSeason</h1>
+        <p class="page-desc font-cream">Produtos artesanais criados especialmente para celebrar esta época tão especial. Encomendas com vagas limitadas.</p>
+    </div>
+</section>
+
+<!-- Tab Selection of Seasons -->
+<section class="menu-filters-bar container">
+    <div class="filters-wrapper">
+        @if (ViewBag.Seasons is IEnumerable<YasminLetiereConfeitaria.Domain.Entities.Sazonalidade> seasons)
+        {
+            foreach (var s in seasons)
+            {
+                var emoji = !string.IsNullOrEmpty(s.Icone) ? s.Icone :
+                            s.Nome == "Páscoa" ? "🐇" :
+                            s.Nome == "Natal" ? "🎄" :
+                            s.Nome == "Namorados" ? "💖" :
+                            s.Nome.Contains("Mães") ? "👩‍👦" :
+                            s.Nome.Contains("Pais") ? "👨‍👦" :
+                            s.Nome.Contains("Junina") ? "🌽" :
+                            s.Nome.Contains("Halloween") ? "🎃" :
+                            s.Nome.Contains("Crianças") ? "🎈" :
+                            s.Nome.Contains("Carnaval") ? "🎭" :
+                            s.Nome.Contains("Réveillon") ? "🥂" :
+                            s.Nome.Contains("Mulher") ? "💐" : "✨";
+                <a asp-action="Sazonal" asp-route-season="@s.Nome" class="filter-btn @(string.Equals(activeSeason, s.Nome, StringComparison.OrdinalIgnoreCase) ? "active" : "")">@s.Nome @emoji</a>
+            }
+        }
+    </div>
+</section>
+
+<!-- Dynamic Product Grid for Active Season -->
+<section class="menu-grid-section container">
+    @if (ViewBag.IsExpired == true)
+    {
+        <div class="seasonal-expired-alert animate-fade-in">
+            <span class="material-icons alert-icon">sentiment_dissatisfied</span>
+            <div class="alert-content">
+                <h3>Vagas Encerradas para esta Temporada</h3>
+                <p>@ViewBag.ExpiredMessage</p>
+            </div>
+        </div>
+    }
+
+    <div class="menu-products-grid">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var product in Model)
+            {
+                var encodedMsg = Uri.EscapeDataString($"Olá Yasmin! Gostaria de encomendar do Cardápio Especial de {activeSeason}: o {product.Name} (Valor: {product.Price:C}). Como funciona o agendamento de retirada/entrega?");
+                var waLink = $"https://wa.me/message/3DAIKNWMQVTAM1?text={encodedMsg}";
+
+                <div class="product-card seasonal-card-border">
+                    <div class="product-image-container">
+                        @{
+                            var imgSrc = string.IsNullOrEmpty(product.ImageUrl) ? "/images/sem_foto.jpg" : product.ImageUrl;
+                        }
+                        <img src="@imgSrc" alt="@product.Name" class="product-image" />
+                        <span class="badge-seasonal-label">Edição @activeSeason</span>
+                        @if (ViewBag.IsExpired == true)
+                        {
+                            <span class="badge-unavailable">Período Encerrado</span>
+                        }
+                        else if (!product.IsAvailable)
+                        {
+                            <span class="badge-unavailable">Encomendas Esgotadas</span>
+                        }
+                    </div>
+                    <div class="product-info">
+                        <span class="product-cat-tag text-gold">@product.Category?.Name</span>
+                        <h3 class="product-name">@product.Name</h3>
+                        <p class="product-desc">@product.Description</p>
+                        
+                        <div class="product-footer">
+                            <span class="product-price">@product.Price.ToString("C", new System.Globalization.CultureInfo("pt-BR"))</span>
+                            @if (ViewBag.IsExpired == true)
+                            {
+                                <button class="btn-order disabled" disabled>Indisponível</button>
+                            }
+                            else if (product.IsAvailable)
+                            {
+                                <a href="@waLink" target="_blank" class="btn-order btn-order-sazonal">
+                                    <span class="material-icons">chat</span> Encomendar
+                                </a>
+                            }
+                            else
+                            {
+                                <button class="btn-order disabled" disabled>Esgotado</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="no-products text-center padded-block">
+                <span class="material-icons">hourglass_empty</span>
+                <h3>Encomendas para @activeSeason ainda não iniciadas.</h3>
+                <p>Nossa produção artesanal é sob encomenda! Entre em contato pelo WhatsApp para saber mais sobre as datas e novidades.</p>
+                <div class="margin-top-md">
+                    <a href="https://wa.me/message/3DAIKNWMQVTAM1" target="_blank" class="btn btn-primary">
+                        <span class="material-icons">chat</span> Fale Conosco
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</section>

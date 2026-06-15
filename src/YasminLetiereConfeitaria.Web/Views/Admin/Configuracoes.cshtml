@@ -1,0 +1,319 @@
+@using YasminLetiereConfeitaria.Domain.Entities
+@{
+    ViewData["Title"] = "Configurações do Sistema";
+    var successMsg = TempData["AdminMessage"] as string;
+    var errorMsg   = TempData["AdminError"]   as string;
+
+    bool catalogoSazonalAtivo = (bool)(ViewBag.CatalogoSazonalAtivo ?? true);
+    var redes = (ViewBag.RedesSociais as IEnumerable<RedeSocial>) ?? Enumerable.Empty<RedeSocial>();
+
+    var iconesPredefinidos = new[]
+    {
+        new { Valor = "chat",          Label = "WhatsApp" },
+        new { Valor = "photo_camera",  Label = "Instagram" },
+        new { Valor = "play_circle",   Label = "TikTok" },
+        new { Valor = "thumb_up",      Label = "Facebook" },
+        new { Valor = "video_library", Label = "YouTube" },
+        new { Valor = "push_pin",      Label = "Pinterest" },
+        new { Valor = "language",      Label = "Website" },
+        new { Valor = "mail",          Label = "E-mail" },
+    };
+}
+
+@* Toasts *@
+@if (!string.IsNullOrEmpty(successMsg))
+{
+    <div id="adminToast" class="admin-toast toast-success" role="alert" aria-live="assertive">
+        <span class="material-icons toast-icon">check_circle</span>
+        <div class="toast-body">
+            <div class="toast-title">Operação realizada!</div>
+            <div class="toast-msg">@successMsg</div>
+        </div>
+        <button class="toast-close" onclick="dismissToast()" aria-label="Fechar">✕</button>
+    </div>
+}
+@if (!string.IsNullOrEmpty(errorMsg))
+{
+    <div id="adminToast" class="admin-toast toast-error" role="alert" aria-live="assertive">
+        <span class="material-icons toast-icon">error</span>
+        <div class="toast-body">
+            <div class="toast-title">Atenção!</div>
+            <div class="toast-msg">@errorMsg</div>
+        </div>
+        <button class="toast-close" onclick="dismissToast()" aria-label="Fechar">✕</button>
+    </div>
+}
+
+<section class="admin-page container">
+    <div class="admin-header-row">
+        <div>
+            <span class="section-tag">Painel Admin</span>
+            <h1 class="page-title">Configurações do Sistema</h1>
+            <p>Gerencie as configurações globais do portal da Yasmin Letiere.</p>
+        </div>
+    </div>
+
+    <div class="config-grid">
+
+        @* ─── Catálogo Sazonal ─── *@
+        <div class="config-card">
+            <div class="config-card-header">
+                <span class="material-icons config-card-icon">auto_awesome</span>
+                <div>
+                    <h2 class="config-card-title">Cardápio Temporário</h2>
+                    <p class="config-card-desc">Controla se o menu "Cardápio Sazonal" aparece no portal, independente das temporadas individuais.</p>
+                </div>
+            </div>
+
+            <div class="config-toggle-status">
+                <span class="material-icons @(catalogoSazonalAtivo ? "text-gold" : "text-muted")" style="font-size:2rem;">
+                    @(catalogoSazonalAtivo ? "toggle_on" : "toggle_off")
+                </span>
+                <span class="config-switch-text">
+                    @if (catalogoSazonalAtivo)
+                    {
+                        <strong class="badge-active-text">Ativo</strong>
+                        <span> — O menu Cardápio Sazonal está visível no portal.</span>
+                    }
+                    else
+                    {
+                        <strong class="badge-inactive-text">Inativo</strong>
+                        <span> — O menu Cardápio Sazonal está oculto no portal.</span>
+                    }
+                </span>
+            </div>
+
+            <form asp-action="SalvarCatalogoSazonal" method="post" class="config-toggle-form">
+                @if (catalogoSazonalAtivo)
+                {
+                    <button type="submit" name="ativo" value="false" class="btn btn-danger-outline"
+                            onclick="return confirm('Deseja ocultar o Cardápio Sazonal do portal? Os clientes não verão mais o menu sazonal.')">
+                        <span class="material-icons">visibility_off</span> Desativar no Portal
+                    </button>
+                }
+                else
+                {
+                    <button type="submit" name="ativo" value="true" class="btn btn-primary">
+                        <span class="material-icons">visibility</span> Ativar no Portal
+                    </button>
+                }
+            </form>
+        </div>
+
+        @* ─── Redes Sociais ─── *@
+        <div class="config-card config-card-full">
+            <div class="config-card-header">
+                <span class="material-icons config-card-icon">share</span>
+                <div>
+                    <h2 class="config-card-title">Redes Sociais</h2>
+                    <p class="config-card-desc">Configure os links exibidos no rodapé do portal. Apenas as ativas aparecem para os clientes.</p>
+                </div>
+                <button class="btn btn-primary config-card-action" onclick="abrirModalRede()">
+                    <span class="material-icons">add</span> Nova Rede
+                </button>
+            </div>
+
+            @if (!redes.Any())
+            {
+                <div class="text-center padded-block">
+                    <span class="material-icons" style="font-size: 48px; color: var(--accent-gold); display: block; margin-bottom: 10px;">share</span>
+                    <p>Nenhuma rede social cadastrada ainda.</p>
+                </div>
+            }
+            else
+            {
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Ícone</th>
+                            <th>Nome</th>
+                            <th>URL</th>
+                            <th>Ordem</th>
+                            <th>Status</th>
+                            <th class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var rede in redes)
+                        {
+                            <tr class="@(rede.Ativo ? "" : "row-inactive")">
+                                <td><span class="material-icons rede-icon-preview">@rede.Icone</span></td>
+                                <td><strong class="table-product-name">@rede.Nome</strong></td>
+                                <td>
+                                    <a href="@rede.Url" target="_blank" class="url-preview">
+                                        @(rede.Url.Length > 48 ? rede.Url[..48] + "…" : rede.Url)
+                                    </a>
+                                </td>
+                                <td>@rede.Ordem</td>
+                                <td>
+                                    <form asp-action="ToggleRedeSocial" asp-route-id="@rede.Id" method="post" style="display:inline;">
+                                        @if (rede.Ativo)
+                                        {
+                                            <button type="submit" class="status-btn active" title="Clique para desativar">
+                                                <span class="material-icons">check_circle</span> Ativo
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="status-btn inactive" title="Clique para ativar">
+                                                <span class="material-icons">cancel</span> Inativo
+                                            </button>
+                                        }
+                                    </form>
+                                </td>
+                                <td class="table-actions">
+                                    <div class="actions-wrapper">
+                                        <button class="action-link edit" title="Editar"
+                                                onclick="abrirModalEdicao('@rede.Id','@Html.Raw(rede.Nome)','@Html.Raw(rede.Url)','@rede.Icone',@rede.Ordem)">
+                                            <span class="material-icons">edit</span>
+                                        </button>
+                                        <form asp-action="DeleteRedeSocial" asp-route-id="@rede.Id" method="post"
+                                              onsubmit="return confirm('Remover a rede social permanentemente?');" style="display:inline;">
+                                            <button type="submit" class="action-btn delete" title="Excluir">
+                                                <span class="material-icons">delete</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+
+    </div>
+</section>
+
+@* Modal: Criar / Editar Rede Social *@
+<div id="modalRedeSocial" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="modalRedeTitle">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="modalRedeTitle" class="modal-title">
+                <span class="material-icons">share</span>
+                <span id="modalRedeTitleText">Nova Rede Social</span>
+            </h3>
+            <button class="modal-close-btn" onclick="fecharModalRede()" aria-label="Fechar">✕</button>
+        </div>
+
+        <form id="formRedeSocial" method="post" class="admin-form">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="redeId" />
+
+            <div class="form-group">
+                <label for="redeNome">Nome da Rede <span class="required">*</span></label>
+                <div class="input-with-icon">
+                    <span class="material-icons">badge</span>
+                    <input type="text" id="redeNome" name="nome" required maxlength="100"
+                           placeholder="Ex: Instagram, WhatsApp, TikTok" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="redeUrl">URL / Link <span class="required">*</span></label>
+                <div class="input-with-icon">
+                    <span class="material-icons">link</span>
+                    <input type="url" id="redeUrl" name="url" required maxlength="500"
+                           placeholder="https://..." />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Ícone <span class="required">*</span></label>
+                <div class="icones-predefinidos-grid">
+                    @foreach (var ic in iconesPredefinidos)
+                    {
+                        <button type="button" class="icone-preset-btn" data-valor="@ic.Valor"
+                                title="@ic.Label" onclick="selecionarIcone('@ic.Valor', this)">
+                            <span class="material-icons">@ic.Valor</span>
+                            <span class="icone-preset-label">@ic.Label</span>
+                        </button>
+                    }
+                </div>
+                <input type="hidden" id="redeIcone" name="icone" value="chat" />
+            </div>
+
+            <div class="form-group">
+                <label for="redeOrdem">Ordem de Exibição</label>
+                <div class="input-with-icon">
+                    <span class="material-icons">sort</span>
+                    <input type="number" id="redeOrdem" name="ordem" value="0" min="0" max="99" style="max-width: 120px;" />
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <span class="material-icons">save</span> Salvar
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="fecharModalRede()">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // ─── Toast ────────────────────────────────────────────────────
+    (function () {
+        const toast = document.getElementById('adminToast');
+        if (!toast) return;
+        toast._timer = setTimeout(() => dismissToast(), 5000);
+    })();
+
+    function dismissToast() {
+        const toast = document.getElementById('adminToast');
+        if (!toast) return;
+        clearTimeout(toast._timer);
+        toast.classList.add('toast-hiding');
+        toast.addEventListener('animationend', () => toast.remove(), { once: true });
+    }
+
+    // ─── Modal ────────────────────────────────────────────────────
+    function abrirModalRede() {
+        document.getElementById('modalRedeTitleText').textContent = 'Nova Rede Social';
+        document.getElementById('formRedeSocial').action = '@Url.Action("CreateRedeSocial", "Admin")';
+        document.getElementById('redeId').value = '';
+        document.getElementById('redeNome').value = '';
+        document.getElementById('redeUrl').value = '';
+        document.getElementById('redeIcone').value = 'chat';
+        document.getElementById('redeOrdem').value = '0';
+        selecionarIconeValor('chat');
+        document.getElementById('modalRedeSocial').style.display = 'flex';
+    }
+
+    function abrirModalEdicao(id, nome, url, icone, ordem) {
+        document.getElementById('modalRedeTitleText').textContent = 'Editar Rede Social';
+        document.getElementById('formRedeSocial').action = '@Url.Action("EditRedeSocial", "Admin")';
+        document.getElementById('redeId').value = id;
+        document.getElementById('redeNome').value = nome;
+        document.getElementById('redeUrl').value = url;
+        document.getElementById('redeIcone').value = icone;
+        document.getElementById('redeOrdem').value = ordem;
+        selecionarIconeValor(icone);
+        document.getElementById('modalRedeSocial').style.display = 'flex';
+    }
+
+    function fecharModalRede() {
+        document.getElementById('modalRedeSocial').style.display = 'none';
+    }
+
+    document.getElementById('modalRedeSocial').addEventListener('click', function (e) {
+        if (e.target === this) fecharModalRede();
+    });
+
+    function selecionarIcone(valor, btn) {
+        document.getElementById('redeIcone').value = valor;
+        document.querySelectorAll('.icone-preset-btn').forEach(b => b.classList.remove('selected'));
+        if (btn) btn.classList.add('selected');
+    }
+
+    function selecionarIconeValor(valor) {
+        document.getElementById('redeIcone').value = valor;
+        document.querySelectorAll('.icone-preset-btn').forEach(b => {
+            b.classList.toggle('selected', b.dataset.valor === valor);
+        });
+    }
+</script>
+}

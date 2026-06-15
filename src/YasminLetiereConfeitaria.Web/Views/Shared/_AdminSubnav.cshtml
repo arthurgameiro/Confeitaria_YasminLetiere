@@ -1,0 +1,123 @@
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction     = ViewContext.RouteData.Values["action"]?.ToString();
+
+    bool IsActive(string action, string? controller = "Admin") =>
+        string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase) &&
+        string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase);
+
+    bool IsGroupActive(params string[] actions) =>
+        actions.Any(a => IsActive(a));
+}
+
+<nav class="admin-subnav" aria-label="Painel Administrativo">
+    <div class="container admin-subnav-inner">
+        <span class="admin-subnav-label">
+            <span class="material-icons">admin_panel_settings</span>
+            Painel Admin
+        </span>
+
+        <div class="admin-subnav-divider" aria-hidden="true"></div>
+
+        <ul class="admin-subnav-links">
+
+            @* Catálogo de Produtos *@
+            <li class="admin-subnav-group @(IsGroupActive("Index","Create","Edit","MoveProduct") ? "group-active" : "")">
+                <a asp-controller="Admin" asp-action="Index"
+                   class="admin-subnav-link @(IsGroupActive("Index","Create","Edit","MoveProduct") ? "active" : "")">
+                    <span class="material-icons">cake</span>
+                    <span>Catálogo de Produtos</span>
+                </a>
+                <ul class="admin-subnav-submenu">
+                    <li>
+                        <a asp-controller="Admin" asp-action="Index"
+                           class="@(IsActive("Index") ? "active" : "")">
+                            <span class="material-icons">list</span> Ver Todos
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Admin" asp-action="Create"
+                           class="@(IsActive("Create") ? "active" : "")">
+                            <span class="material-icons">add_circle</span> Novo Produto
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            @* Cardápios Temporários *@
+            <li class="admin-subnav-group @(IsGroupActive("Sazonalidades","CreateSazonalidade","EditSazonalidade") ? "group-active" : "")">
+                <a asp-controller="Admin" asp-action="Sazonalidades"
+                   class="admin-subnav-link @(IsGroupActive("Sazonalidades","CreateSazonalidade","EditSazonalidade") ? "active" : "")">
+                    <span class="material-icons">auto_awesome</span>
+                    <span>Cardápios Temporários</span>
+                </a>
+                <ul class="admin-subnav-submenu">
+                    <li>
+                        <a asp-controller="Admin" asp-action="Sazonalidades"
+                           class="@(IsActive("Sazonalidades") ? "active" : "")">
+                            <span class="material-icons">list</span> Ver Todas
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Admin" asp-action="CreateSazonalidade"
+                           class="@(IsActive("CreateSazonalidade") ? "active" : "")">
+                            <span class="material-icons">add_circle</span> Nova Temporada
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            @* Feiras e Eventos *@
+            <li class="admin-subnav-group @(IsGroupActive("Feiras","CreateFeira","EditFeira") ? "group-active" : "")">
+                <a asp-controller="Admin" asp-action="Feiras"
+                   class="admin-subnav-link @(IsGroupActive("Feiras","CreateFeira","EditFeira") ? "active" : "")">
+                    <span class="material-icons">storefront</span>
+                    <span>Feiras e Eventos</span>
+                </a>
+                <ul class="admin-subnav-submenu">
+                    <li>
+                        <a asp-controller="Admin" asp-action="Feiras"
+                           class="@(IsActive("Feiras") ? "active" : "")">
+                            <span class="material-icons">list</span> Ver Todas
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Admin" asp-action="CreateFeira"
+                           class="@(IsActive("CreateFeira") ? "active" : "")">
+                            <span class="material-icons">add_circle</span> Novo Evento
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            @* Configurações *@
+            <li class="admin-subnav-group @(IsGroupActive("Configuracoes") ? "group-active" : "")">
+                <a asp-controller="Admin" asp-action="Configuracoes"
+                   class="admin-subnav-link @(IsGroupActive("Configuracoes") ? "active" : "")">
+                    <span class="material-icons">settings</span>
+                    <span>Configurações</span>
+                </a>
+                <ul class="admin-subnav-submenu">
+                    <li>
+                        <a asp-controller="Admin" asp-action="Configuracoes"
+                           class="@(IsActive("Configuracoes") ? "active" : "")">
+                            <span class="material-icons">tune</span> Geral &amp; Redes Sociais
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+        </ul>
+
+        <div class="admin-subnav-actions">
+            <a asp-controller="Home" asp-action="Index" class="admin-subnav-portal-link" target="_blank">
+                <span class="material-icons">open_in_new</span>
+                <span>Ver Portal</span>
+            </a>
+            <a asp-controller="Auth" asp-action="Logout" class="admin-subnav-logout-link">
+                <span class="material-icons">logout</span>
+                <span>Sair</span>
+            </a>
+        </div>
+    </div>
+</nav>

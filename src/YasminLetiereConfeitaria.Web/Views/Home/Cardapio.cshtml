@@ -1,0 +1,334 @@
+@model IEnumerable<YasminLetiereConfeitaria.Domain.Entities.Product>
+
+@{
+    ViewData["Title"] = "Cardápio Fixo";
+    var categories = ViewBag.Categories as IEnumerable<YasminLetiereConfeitaria.Domain.Entities.Category>;
+}
+
+<section class="menu-page-header">
+    <div class="container text-center">
+        <span class="section-tag">Nossos Clássicos</span>
+        <h1 class="page-title">Cardápio Fixo</h1>
+        <p class="page-desc">Sobremesas, doces finos e bolos disponíveis para encomenda durante todo o ano.</p>
+    </div>
+</section>
+
+<!-- Menu Navigation / Filters -->
+<section class="menu-filters-bar container">
+    <div class="filters-wrapper">
+        <button class="filter-btn active" data-filter="all">Todos</button>
+        @if (categories != null)
+        {
+            foreach (var category in categories)
+            {
+                <button class="filter-btn" data-filter="@category.Id">@category.Name</button>
+            }
+        }
+    </div>
+</section>
+
+<!-- Menu Products Grid -->
+<section class="menu-grid-section container">
+    <div class="menu-products-grid" id="products-grid">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var product in Model)
+            {
+                var encodedMsg = Uri.EscapeDataString($"Olá Yasmin! Tenho interesse no {product.Name} (Valor: {product.Price:C}) do Cardápio Fixo. Como funciona a entrega e agendamento?");
+                var waLink = $"https://wa.me/message/3DAIKNWMQVTAM1?text={encodedMsg}";
+                <div class="product-card" data-category="@product.CategoryId">
+                    <div class="product-image-container">
+                        @{
+                            var imgSrc = string.IsNullOrEmpty(product.ImageUrl) ? "/images/sem_foto.jpg" : product.ImageUrl;
+                        }
+                        <img src="@imgSrc" alt="@product.Name" class="product-image" />
+                        @if (!product.IsAvailable)
+                        {
+                            <span class="badge-unavailable">Indisponível</span>
+                        }
+                    </div>
+                    <div class="product-info">
+                        <span class="product-cat-tag">@product.Category?.Name</span>
+                        <h3 class="product-name">@product.Name</h3>
+                        <p class="product-desc">@product.Description</p>
+                        
+                        <div class="product-footer">
+                            <span class="product-price">@product.Price.ToString("C", new System.Globalization.CultureInfo("pt-BR"))</span>
+                            @if (product.IsAvailable)
+                            {
+                                if (product.Name.Contains("Naked Cake"))
+                                {
+                                    <button type="button" class="btn-order btn-order-custom" onclick="openNakedCakeModal()">
+                                        <span class="material-icons">tune</span> Customizar
+                                    </button>
+                                }
+                                else
+                                {
+                                    <a href="@waLink" target="_blank" class="btn-order">
+                                        <span class="material-icons">chat</span> Pedir
+                                    </a>
+                                }
+                            }
+                            else
+                            {
+                                <button class="btn-order disabled" disabled>Esgotado</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="no-products text-center">
+                <span class="material-icons">sentiment_dissatisfied</span>
+                <h3>Nenhum doce cadastrado no cardápio fixo.</h3>
+                <p>Volte mais tarde ou entre em contato pelo WhatsApp para verificar disponibilidade.</p>
+            </div>
+        }
+    </div>
+</section>
+
+<!-- Naked Cake Customizer Modal -->
+<div id="nakedCakeModal" class="modal">
+    <div class="modal-content animate-scale-up">
+        <div class="modal-header">
+            <h2 class="modal-title">Monte seu Naked Cake</h2>
+            <button class="close-modal-btn" onclick="closeNakedCakeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-grid">
+                <div class="modal-preview-panel">
+                    <img src="/images/bolo_brigadeiro_duo.jpg" alt="Naked Cake" class="customizer-preview-img" />
+                    <div class="price-indicator">
+                        <span class="price-label">Preço Total Estimado</span>
+                        <h3 id="customPrice">R$ 180,00</h3>
+                    </div>
+                </div>
+                
+                <div class="customizer-options-panel">
+                    <!-- Tamanho -->
+                    <div class="option-section">
+                        <span class="option-section-title">1. Escolha o Tamanho</span>
+                        <div class="options-group radio-options">
+                            <label class="custom-radio-container">
+                                <input type="radio" name="cakeSize" value="180" data-label="P (1.5kg - 10 a 12 fatias)" checked onchange="updateNakedCakeTotal()" />
+                                <div class="radio-card">
+                                    <span class="radio-title">P (1.5kg)</span>
+                                    <span class="radio-desc">10-12 fatias</span>
+                                    <span class="radio-addon">R$ 180,00</span>
+                                </div>
+                            </label>
+                            <label class="custom-radio-container">
+                                <input type="radio" name="cakeSize" value="240" data-label="M (2.5kg - 18 a 20 fatias)" onchange="updateNakedCakeTotal()" />
+                                <div class="radio-card">
+                                    <span class="radio-title">M (2.5kg)</span>
+                                    <span class="radio-desc">18-20 fatias</span>
+                                    <span class="radio-addon">R$ 240,00</span>
+                                </div>
+                            </label>
+                            <label class="custom-radio-container">
+                                <input type="radio" name="cakeSize" value="320" data-label="G (3.5kg - 28 a 30 fatias)" onchange="updateNakedCakeTotal()" />
+                                <div class="radio-card">
+                                    <span class="radio-title">G (3.5kg)</span>
+                                    <span class="radio-desc">28-30 fatias</span>
+                                    <span class="radio-addon">R$ 320,00</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Massa -->
+                    <div class="option-section">
+                        <span class="option-section-title">2. Escolha a Massa</span>
+                        <div class="options-group select-wrapper">
+                            <select id="cakeBatter" onchange="updateNakedCakeTotal()">
+                                <option value="0" data-label="Massa Amanteigada de Baunilha">Massa Amanteigada de Baunilha (R$ 0,00)</option>
+                                <option value="10" data-label="Massa Cacau Premium 50%">Massa Cacau Premium 50% (+ R$ 10,00)</option>
+                                <option value="15" data-label="Massa Red Velvet">Massa Red Velvet (+ R$ 15,00)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Recheio -->
+                    <div class="option-section">
+                        <span class="option-section-title">3. Escolha o Recheio</span>
+                        <div class="options-group select-wrapper">
+                            <select id="cakeFilling" onchange="updateNakedCakeTotal()">
+                                <option value="0" data-label="Creme Belga de Baunilha">Creme Belga de Baunilha (R$ 0,00)</option>
+                                <option value="15" data-label="Ganache de Chocolate Belga">Ganache de Chocolate Belga (+ R$ 15,00)</option>
+                                <option value="20" data-label="Brigadeiro de Pistache Siciliano">Brigadeiro de Pistache Siciliano (+ R$ 20,00)</option>
+                                <option value="15" data-label="Ninho com Geleia de Morango">Ninho com Geleia de Morango (+ R$ 15,00)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Adicionais -->
+                    <div class="option-section">
+                        <span class="option-section-title">4. Adicionais Especiais (Opcional)</span>
+                        <div class="options-group checklist-options">
+                            <label class="custom-checkbox-container">
+                                <input type="checkbox" name="cakeExtra" value="25" data-label="Flores Naturais Comestíveis" onchange="updateNakedCakeTotal()" />
+                                <span class="checkmark"></span>
+                                <span class="checkbox-label">Flores Naturais Comestíveis (+ R$ 25,00)</span>
+                            </label>
+                            <label class="custom-checkbox-container">
+                                <input type="checkbox" name="cakeExtra" value="15" data-label="Morangos Frescos no Topo" onchange="updateNakedCakeTotal()" />
+                                <span class="checkmark"></span>
+                                <span class="checkbox-label">Morangos Frescos no Topo (+ R$ 15,00)</span>
+                            </label>
+                            <label class="custom-checkbox-container">
+                                <input type="checkbox" name="cakeExtra" value="20" data-label="Docinhos Gourmet no Topo (5 un)" onchange="updateNakedCakeTotal()" />
+                                <span class="checkmark"></span>
+                                <span class="checkbox-label">Docinhos Gourmet no Topo (+ R$ 20,00)</span>
+                            </label>
+                            <label class="custom-checkbox-container">
+                                <input type="checkbox" name="cakeExtra" value="10" data-label="Topo de Parabéns em MDF" onchange="updateNakedCakeTotal()" />
+                                <span class="checkmark"></span>
+                                <span class="checkbox-label">Topo de Parabéns em MDF (+ R$ 10,00)</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeNakedCakeModal()">Fechar</button>
+            <button class="btn btn-primary" onclick="sendNakedCakeOrder()">
+                <span class="material-icons">chat</span> Confirmar e Encomendar
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Lógica de filtragem rápida de produtos via JavaScript sem reload
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const productCards = document.querySelectorAll('.product-card');
+
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Remove active de todos
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    // Adiciona active no clicado
+                    this.classList.add('active');
+
+                    const filterValue = this.getAttribute('data-filter');
+
+                    productCards.forEach(card => {
+                        if (filterValue === 'all') {
+                            card.style.display = 'flex';
+                            card.classList.add('fade-in');
+                        } else {
+                            const cardCat = card.getAttribute('data-category');
+                            if (cardCat === filterValue) {
+                                card.style.display = 'flex';
+                                card.classList.add('fade-in');
+                            } else {
+                                card.style.display = 'none';
+                            }
+                        }
+                    });
+                });
+            });
+        });
+
+        // Funções do Customizador de Naked Cake
+        function openNakedCakeModal() {
+            const modal = document.getElementById('nakedCakeModal');
+            modal.style.display = 'flex';
+            document.body.classList.add('modal-open');
+            updateNakedCakeTotal();
+        }
+
+        function closeNakedCakeModal() {
+            const modal = document.getElementById('nakedCakeModal');
+            modal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+        }
+
+        function updateNakedCakeTotal() {
+            let basePrice = 180;
+            const sizes = document.getElementsByName('cakeSize');
+            for (const size of sizes) {
+                if (size.checked) {
+                    basePrice = parseFloat(size.value);
+                    break;
+                }
+            }
+            const batterPrice = parseFloat(document.getElementById('cakeBatter').value);
+            const fillingPrice = parseFloat(document.getElementById('cakeFilling').value);
+            
+            let extrasPrice = 0;
+            const extras = document.getElementsByName('cakeExtra');
+            for (const extra of extras) {
+                if (extra.checked) {
+                    extrasPrice += parseFloat(extra.value);
+                }
+            }
+            
+            const total = basePrice + batterPrice + fillingPrice + extrasPrice;
+            document.getElementById('customPrice').innerText = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function sendNakedCakeOrder() {
+            let sizeLabel = "";
+            let basePrice = 180;
+            const sizes = document.getElementsByName('cakeSize');
+            for (const size of sizes) {
+                if (size.checked) {
+                    basePrice = parseFloat(size.value);
+                    sizeLabel = size.getAttribute('data-label');
+                    break;
+                }
+            }
+            
+            const batterSelect = document.getElementById('cakeBatter');
+            const batterLabel = batterSelect.options[batterSelect.selectedIndex].getAttribute('data-label');
+            const batterPrice = parseFloat(batterSelect.value);
+            
+            const fillingSelect = document.getElementById('cakeFilling');
+            const fillingLabel = fillingSelect.options[fillingSelect.selectedIndex].getAttribute('data-label');
+            const fillingPrice = parseFloat(fillingSelect.value);
+            
+            let extrasLabels = [];
+            let extrasPrice = 0;
+            const extras = document.getElementsByName('cakeExtra');
+            for (const extra of extras) {
+                if (extra.checked) {
+                    extrasPrice += parseFloat(extra.value);
+                    extrasLabels.push(extra.getAttribute('data-label'));
+                }
+            }
+            
+            const total = basePrice + batterPrice + fillingPrice + extrasPrice;
+            const formattedTotal = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            
+            let message = `Olá Yasmin! Gostaria de encomendar um Naked Cake Personalizado:\n\n` +
+                          `🍰 *Tamanho:* ${sizeLabel}\n` +
+                          `🌾 *Massa:* ${batterLabel}\n` +
+                          `🍫 *Recheio:* ${fillingLabel}\n`;
+            
+            if (extrasLabels.length > 0) {
+                message += `✨ *Adicionais:* ${extrasLabels.join(', ')}\n`;
+            }
+            
+            message += `\n💰 *Valor Total Estimado:* ${formattedTotal}\n\n` +
+                       `Como posso agendar a data de retirada/entrega?`;
+                      
+            const encoded = encodeURIComponent(message);
+            const waLink = `https://wa.me/message/3DAIKNWMQVTAM1?text=${encoded}`;
+            window.open(waLink, '_blank');
+        }
+
+        // Fechar modal clicando fora dele
+        window.addEventListener('click', function(e) {
+            const modal = document.getElementById('nakedCakeModal');
+            if (e.target === modal) {
+                closeNakedCakeModal();
+            }
+        });
+    </script>
+}

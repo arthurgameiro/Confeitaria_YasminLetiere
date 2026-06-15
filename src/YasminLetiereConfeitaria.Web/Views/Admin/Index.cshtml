@@ -1,0 +1,333 @@
+@model IEnumerable<YasminLetiereConfeitaria.Domain.Entities.Product>
+
+@{
+    ViewData["Title"] = "Painel de Controle";
+    var successMsg = TempData["AdminMessage"] as string;
+    var errorMsg   = TempData["AdminError"]   as string;
+
+    const string placeholderImg = "/images/sem_foto.jpg";
+
+    var fixos    = Model.Where(p => p.SeasonalTag == null)
+                        .GroupBy(p => p.Category?.Name ?? "Sem Categoria")
+                        .OrderBy(g => g.Key)
+                        .ToList();
+
+    var sazonais = Model.Where(p => p.SeasonalTag != null)
+                        .GroupBy(p => p.SeasonalTag!)
+                        .OrderBy(g => g.Key)
+                        .ToList();
+}
+
+@* Toasts *@
+@if (!string.IsNullOrEmpty(successMsg))
+{
+    <div id="adminToast" class="admin-toast toast-success" role="alert">
+        <span class="material-icons toast-icon">check_circle</span>
+        <div class="toast-body">
+            <div class="toast-title">Operação realizada!</div>
+            <div class="toast-msg">@successMsg</div>
+        </div>
+        <button class="toast-close" onclick="dismissToast()">✕</button>
+    </div>
+}
+@if (!string.IsNullOrEmpty(errorMsg))
+{
+    <div id="adminToast" class="admin-toast toast-error" role="alert">
+        <span class="material-icons toast-icon">error</span>
+        <div class="toast-body">
+            <div class="toast-title">Atenção!</div>
+            <div class="toast-msg">@errorMsg</div>
+        </div>
+        <button class="toast-close" onclick="dismissToast()">✕</button>
+    </div>
+}
+
+<section class="admin-page container">
+    <div class="admin-header-row">
+        <div>
+            <span class="section-tag">Chef Confeiteira</span>
+            <h1 class="page-title">Gestão de Cardápio e Preços</h1>
+        </div>
+        <div class="header-actions">
+            <a asp-action="Feiras" class="btn btn-secondary">
+                <span class="material-icons">event</span> Feiras Gastronômicas
+            </a>
+            <a asp-action="Sazonalidades" class="btn btn-secondary">
+                <span class="material-icons">calendar_month</span> Sazonalidades
+            </a>
+            <a asp-action="Create" class="btn btn-primary">
+                <span class="material-icons">add</span> Novo Produto
+            </a>
+        </div>
+    </div>
+
+    <div class="admin-stats-summary">
+        <div class="summary-card">
+            <span class="material-icons text-blue">restaurant_menu</span>
+            <div class="summary-info">
+                <h3>@Model.Count()</h3>
+                <p>Produtos Totais</p>
+            </div>
+        </div>
+        <div class="summary-card">
+            <span class="material-icons text-gold">check_circle</span>
+            <div class="summary-info">
+                <h3>@Model.Count(p => p.IsAvailable)</h3>
+                <p>Disponíveis para Pedido</p>
+            </div>
+        </div>
+        <div class="summary-card">
+            <span class="material-icons text-christmas">calendar_month</span>
+            <div class="summary-info">
+                <h3>@Model.Count(p => p.SeasonalTag != null)</h3>
+                <p>Itens Sazonais</p>
+            </div>
+        </div>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="admin-table-container">
+            <div class="text-center padded-block">
+                <span class="material-icons font-lg text-cream">sentiment_dissatisfied</span>
+                <p>Nenhum doce cadastrado ainda.</p>
+            </div>
+        </div>
+    }
+
+    @* ── Grupos Fixos por Categoria ── *@
+    @foreach (var grupo in fixos)
+    {
+        <div class="product-group-section">
+            <div class="product-group-header">
+                <span class="material-icons product-group-icon">restaurant_menu</span>
+                <h2 class="product-group-title">@grupo.Key</h2>
+                <span class="product-group-count">@grupo.Count() produto@(grupo.Count() != 1 ? "s" : "")</span>
+            </div>
+            <div class="admin-table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Preço</th>
+                            <th>Status</th>
+                            <th class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var product in grupo.OrderBy(p => p.Name))
+                        {
+                            var imgSrc = string.IsNullOrEmpty(product.ImageUrl) ? placeholderImg : product.ImageUrl;
+                            <tr>
+                                <td>
+                                    <div class="table-product-cell">
+                                        <img src="@imgSrc" alt="@product.Name" class="table-product-thumb" />
+                                        <div>
+                                            <strong class="table-product-name">@product.Name</strong>
+                                            <p class="table-product-desc">@product.Description</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="table-price">
+                                    <strong>@product.Price.ToString("C", new System.Globalization.CultureInfo("pt-BR"))</strong>
+                                </td>
+                                <td>
+                                    <form asp-action="ToggleAvailability" asp-route-id="@product.Id" method="post" style="display:inline;"
+                                          onsubmit="return @(product.IsAvailable ? "confirm('Deseja realmente inativar este produto?')" : "true");">
+                                        @if (product.IsAvailable)
+                                        {
+                                            <button type="submit" class="status-btn active" title="Clique para desativar">
+                                                <span class="material-icons">check_circle</span> Ativo
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="status-btn inactive" title="Clique para ativar">
+                                                <span class="material-icons">cancel</span> Inativo
+                                            </button>
+                                        }
+                                    </form>
+                                </td>
+                                <td class="table-actions">
+                                    <div class="actions-wrapper">
+                                        <a asp-action="Edit" asp-route-id="@product.Id" class="action-link edit" title="Editar">
+                                            <span class="material-icons">edit</span>
+                                        </a>
+                                        <form asp-action="Delete" asp-route-id="@product.Id" method="post"
+                                              onsubmit="return confirm('Deseja realmente remover este doce do cardápio?');" style="display:inline;">
+                                            <button type="submit" class="action-btn delete" title="Excluir">
+                                                <span class="material-icons">delete</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    @* ── Grupos Sazonais por Tag ── *@
+    @foreach (var grupo in sazonais)
+    {
+        <div class="product-group-section">
+            <div class="product-group-header seasonal-group-header">
+                <span class="material-icons product-group-icon">event</span>
+                <h2 class="product-group-title">Sazonal — @grupo.Key</h2>
+                <span class="product-group-count">@grupo.Count() produto@(grupo.Count() != 1 ? "s" : "")</span>
+            </div>
+            <div class="admin-table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Preço</th>
+                            <th>Status</th>
+                            <th class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var product in grupo.OrderBy(p => p.Name))
+                        {
+                            var imgSrc = string.IsNullOrEmpty(product.ImageUrl) ? placeholderImg : product.ImageUrl;
+                            <tr>
+                                <td>
+                                    <div class="table-product-cell">
+                                        <img src="@imgSrc" alt="@product.Name" class="table-product-thumb" />
+                                        <div>
+                                            <strong class="table-product-name">@product.Name</strong>
+                                            <p class="table-product-desc">@product.Description</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="table-price">
+                                    <strong>@product.Price.ToString("C", new System.Globalization.CultureInfo("pt-BR"))</strong>
+                                </td>
+                                <td>
+                                    <form asp-action="ToggleAvailability" asp-route-id="@product.Id" method="post" style="display:inline;"
+                                          onsubmit="return @(product.IsAvailable ? "confirm('Deseja realmente inativar este produto?')" : "true");">
+                                        @if (product.IsAvailable)
+                                        {
+                                            <button type="submit" class="status-btn active" title="Clique para desativar">
+                                                <span class="material-icons">check_circle</span> Ativo
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="status-btn inactive" title="Clique para ativar">
+                                                <span class="material-icons">cancel</span> Inativo
+                                            </button>
+                                        }
+                                    </form>
+                                </td>
+                                <td class="table-actions">
+                                    <div class="actions-wrapper">
+                                        <a asp-action="Edit" asp-route-id="@product.Id" class="action-link edit" title="Editar">
+                                            <span class="material-icons">edit</span>
+                                        </a>
+                                        <form asp-action="Delete" asp-route-id="@product.Id" method="post"
+                                              onsubmit="return confirm('Deseja realmente remover este doce do cardápio?');" style="display:inline;">
+                                            <button type="submit" class="action-btn delete" title="Excluir">
+                                                <span class="material-icons">delete</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+</section>
+
+@* ── Modal de Transferência / Mover Produto ── *@
+<div id="moveProductModal" class="modal" onclick="if(event.target === this) closeMoveModal()">
+    <div class="modal-content" style="max-width: 480px; border-radius: 12px;">
+        <div class="modal-header">
+            <h3 class="modal-title">Mover de Catálogo</h3>
+            <button class="close-modal-btn" onclick="closeMoveModal()">&times;</button>
+        </div>
+        <form asp-action="MoveProduct" method="post" class="admin-form">
+            <div class="modal-body" style="padding: 20px;">
+                <p style="margin-bottom: 20px; font-size: 14.5px; color: var(--chocolate-dark);">
+                    Mover o produto <strong id="moveProductName" style="color: var(--primary-navy);"></strong> para outro catálogo:
+                </p>
+                <input type="hidden" id="moveProductId" name="id" />
+
+                <div class="form-group" style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 6px;">
+                    <label for="moveCategoryId" style="font-size: 12px; font-weight: 600; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 0.5px;">Categoria Destino *</label>
+                    <select id="moveCategoryId" name="categoryId" required style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1.5px solid var(--border-ivory); font-family: var(--font-body); color: var(--chocolate-dark); background-color: #fafafa; outline: none;">
+                        @if (ViewBag.Categories != null)
+                        {
+                            foreach (var cat in (IEnumerable<YasminLetiereConfeitaria.Domain.Entities.Category>)ViewBag.Categories)
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 6px;">
+                    <label for="moveSeasonalTag" style="font-size: 12px; font-weight: 600; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 0.5px;">Sazonalidade Destino</label>
+                    <select id="moveSeasonalTag" name="seasonalTag" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1.5px solid var(--border-ivory); font-family: var(--font-body); color: var(--chocolate-dark); background-color: #fafafa; outline: none;">
+                        <option value="">Nenhum (Cardápio Fixo)</option>
+                        @if (ViewBag.Seasons != null)
+                        {
+                            foreach (var s in (IEnumerable<YasminLetiereConfeitaria.Domain.Entities.Sazonalidade>)ViewBag.Seasons)
+                            {
+                                <option value="@s.Nome">@s.Nome</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer" style="background-color: var(--gray-light); border-top: 1px solid var(--border-ivory); padding: 16px 20px; display: flex; justify-content: flex-end; gap: 12px;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeMoveModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <span class="material-icons" style="font-size: 16px; margin-right: 4px; vertical-align: middle;">swap_horiz</span> Mover
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    (function () {
+        const toast = document.getElementById('adminToast');
+        if (!toast) return;
+        toast._timer = setTimeout(() => dismissToast(), 5000);
+    })();
+
+    function dismissToast() {
+        const toast = document.getElementById('adminToast');
+        if (!toast) return;
+        clearTimeout(toast._timer);
+        toast.classList.add('toast-hiding');
+        toast.addEventListener('animationend', () => toast.remove(), { once: true });
+    }
+
+    /* JavaScript do Modal Mover */
+    function openMoveModal(id, name, categoryId, seasonalTag) {
+        document.getElementById('moveProductId').value = id;
+        document.getElementById('moveProductName').innerText = name;
+        document.getElementById('moveCategoryId').value = categoryId;
+        document.getElementById('moveSeasonalTag').value = seasonalTag;
+        
+        const modal = document.getElementById('moveProductModal');
+        modal.style.display = 'flex';
+        document.body.classList.add('modal-open');
+    }
+
+    function closeMoveModal() {
+        const modal = document.getElementById('moveProductModal');
+        modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+    }
+</script>
+}

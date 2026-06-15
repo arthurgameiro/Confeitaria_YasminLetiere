@@ -1,0 +1,87 @@
+@model YasminLetiereConfeitaria.Domain.Entities.FeiraGastronomica
+@{
+    ViewData["Title"] = "Editar Feira Gastronômica";
+    var errorMsg = TempData["AdminError"] as string;
+}
+
+@if (!string.IsNullOrEmpty(errorMsg))
+{
+    <div id="adminToast" class="admin-toast toast-error" role="alert">
+        <span class="material-icons toast-icon">error</span>
+        <div class="toast-body">
+            <div class="toast-title">Atenção!</div>
+            <div class="toast-msg">@errorMsg</div>
+        </div>
+        <button class="toast-close" onclick="dismissToast()">✕</button>
+    </div>
+}
+
+<section class="admin-page container">
+    <div class="admin-header-row">
+        <div>
+            <span class="section-tag">Feiras Gastronômicas</span>
+            <h1 class="page-title">Editar Feira Gastronômica</h1>
+            <p>Altere os dados da feira gastronômica e salve as modificações.</p>
+        </div>
+        <div class="header-actions">
+            <a asp-action="Feiras" class="btn btn-secondary">
+                <span class="material-icons">arrow_back</span> Voltar
+            </a>
+        </div>
+    </div>
+
+    <div class="admin-form-card">
+        <form asp-action="EditFeira" method="post" class="admin-form">
+            <input type="hidden" name="id" value="@Model.Id" />
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="nome">Nome do Evento / Feira *</label>
+                    <input type="text" id="nome" name="nome" value="@Model.Nome" placeholder="Ex: Feira Gastro Freguesia 2026" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="dataHora">Data e Horário *</label>
+                    <input type="datetime-local" id="dataHora" name="dataHora" value="@Model.DataHora.ToString("yyyy-MM-ddTHH:mm")" required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="local">Local / Endereço Completo *</label>
+                <input type="text" id="local" name="local" value="@Model.Local" placeholder="Ex: Praça Seca, nº 123 - Jacarepaguá, RJ" required />
+            </div>
+
+            <div class="form-group">
+                <label for="descricao">Descrição ou Detalhes do Evento (Opcional)</label>
+                <textarea id="descricao" name="descricao" rows="4" placeholder="Ex: Estaremos no stand 15 servindo nossos bolos trufados e quiches salgadas especiais...">@Model.Descricao</textarea>
+            </div>
+
+            <div class="form-actions-row">
+                <a asp-action="Feiras" class="btn btn-secondary">
+                    <span class="material-icons">arrow_back</span> Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <span class="material-icons">save</span> Salvar Alterações
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+<script>
+    (function () {
+        const toast = document.getElementById('adminToast');
+        if (!toast) return;
+        toast._timer = setTimeout(() => dismissToast(), 5000);
+    })();
+
+    function dismissToast() {
+        const toast = document.getElementById('adminToast');
+        if (!toast) return;
+        clearTimeout(toast._timer);
+        toast.classList.add('toast-hiding');
+        toast.addEventListener('animationend', () => toast.remove(), { once: true });
+    }
+</script>
+}

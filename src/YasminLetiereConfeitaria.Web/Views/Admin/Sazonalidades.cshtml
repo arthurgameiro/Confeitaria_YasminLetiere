@@ -1,0 +1,215 @@
+@model IEnumerable<YasminLetiereConfeitaria.Domain.Entities.Sazonalidade>
+
+@{
+    ViewData["Title"] = "Configurar Sazonalidades";
+    var successMsg = TempData["AdminMessage"] as string;
+    var errorMsg   = TempData["AdminError"]   as string;
+}
+
+@* Toast de sucesso *@
+@if (!string.IsNullOrEmpty(successMsg))
+{
+    <div id="adminToast" class="admin-toast toast-success" role="alert" aria-live="assertive">
+        <span class="material-icons toast-icon">check_circle</span>
+        <div class="toast-body">
+            <div class="toast-title">Operação realizada!</div>
+            <div class="toast-msg">@successMsg</div>
+        </div>
+        <button class="toast-close" onclick="dismissToast()" aria-label="Fechar">✕</button>
+    </div>
+}
+
+@* Toast de erro *@
+@if (!string.IsNullOrEmpty(errorMsg))
+{
+    <div id="adminToast" class="admin-toast toast-error" role="alert" aria-live="assertive">
+        <span class="material-icons toast-icon">error</span>
+        <div class="toast-body">
+            <div class="toast-title">Atenção!</div>
+            <div class="toast-msg">@errorMsg</div>
+        </div>
+        <button class="toast-close" onclick="dismissToast()" aria-label="Fechar">✕</button>
+    </div>
+}
+
+<section class="admin-page container">
+    <div class="admin-header-row">
+        <div>
+            <span class="section-tag">Temporadas Especiais</span>
+            <h1 class="page-title">Gestão de Sazonalidades</h1>
+            <p>Defina os períodos em que os cardápios sazonais estarão ativos e as mensagens exibidas após o término.</p>
+        </div>
+        <div class="header-actions" style="align-items: center;">
+            @* Toggle de visualização *@
+            <div class="view-toggle-group" title="Alternar visualização">
+                <button id="btnGrid" class="view-toggle-btn active" onclick="setView('grid')" title="Visualização em cards">
+                    <span class="material-icons" style="font-size:20px;">grid_view</span>
+                </button>
+                <button id="btnList" class="view-toggle-btn" onclick="setView('list')" title="Visualização em lista">
+                    <span class="material-icons" style="font-size:20px;">view_list</span>
+                </button>
+            </div>
+            <a asp-action="CreateSazonalidade" class="btn btn-primary">
+                <span class="material-icons">add</span> Nova Temporada
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <span class="material-icons">arrow_back</span> Voltar ao Painel
+            </a>
+        </div>
+    </div>
+
+    <div class="sazonalidades-grid" id="sazonalidadesGrid">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var saz in Model)
+            {
+                var isCurrentlyActive = DateTime.UtcNow >= saz.DataInicio && DateTime.UtcNow <= saz.DataFim;
+                <div class="sazonalidade-card @(isCurrentlyActive && saz.Ativo ? "active-season" : "inactive-season") @(saz.Ativo ? "" : "season-inactive")">
+                    <div class="season-card-header">
+                        <div class="season-title-group">
+                            @if (!string.IsNullOrEmpty(saz.Icone))
+                            {
+                                <span class="season-emoji-badge" style="font-size: 24px; margin-right: 10px;">@saz.Icone</span>
+                            }
+                            else
+                            {
+                                <span class="material-icons season-icon">
+                                    @(saz.Nome.ToLower().Contains("páscoa") ? "egg"
+                                      : saz.Nome.ToLower().Contains("natal") ? "forest"
+                                      : saz.Nome.ToLower().Contains("namorados") ? "favorite"
+                                      : saz.Nome.ToLower().Contains("junina") ? "local_fire_department"
+                                      : saz.Nome.ToLower().Contains("halloween") ? "dark_mode"
+                                      : saz.Nome.ToLower().Contains("mães") ? "volunteer_activism"
+                                      : saz.Nome.ToLower().Contains("pais") ? "people"
+                                      : saz.Nome.ToLower().Contains("crianças") ? "child_care"
+                                      : saz.Nome.ToLower().Contains("carnaval") ? "celebration"
+                                      : saz.Nome.ToLower().Contains("réveillon") ? "celebration"
+                                      : saz.Nome.ToLower().Contains("mulher") ? "spa"
+                                      : "calendar_month")
+                                </span>
+                            }
+                            <h3>@saz.Nome</h3>
+                        </div>
+                        <div class="season-status-badge">
+                            <span class="status-badge @(isCurrentlyActive && saz.Ativo ? "active" : "inactive")">
+                                @(isCurrentlyActive && saz.Ativo ? "Ativa" : "Inativa")
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="season-card-body">
+                        <div class="season-info-row dates-info">
+                            <div class="info-item">
+                                <span class="material-icons info-icon text-gold">play_circle</span>
+                                <div>
+                                    <label class="info-label">Início</label>
+                                    <span class="info-value">@saz.DataInicio.ToLocalTime().ToString("g")</span>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <span class="material-icons info-icon text-gold">stop_circle</span>
+                                <div>
+                                    <label class="info-label">Fim</label>
+                                    <span class="info-value">@saz.DataFim.ToLocalTime().ToString("g")</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="season-card-footer">
+                        <small class="text-muted">Atualizado: @saz.AtualizadoEm.ToLocalTime().ToString("g")</small>
+                        <div class="card-actions">
+                            @if (isCurrentlyActive && saz.Ativo)
+                            {
+                                <form asp-action="ToggleSazonalidadeAtiva" method="post" style="margin: 0; padding: 0; display: inline;">
+                                    <input type="hidden" name="id" value="@saz.Id" />
+                                    <input type="hidden" name="ativo" value="false" />
+                                    <button type="submit" class="btn btn-secondary btn-sm" 
+                                            onclick="return confirm('Deseja realmente inativar a temporada @saz.Nome?');">
+                                        <span class="material-icons">visibility_off</span> Inativar
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-action="ToggleSazonalidadeAtiva" method="post" style="margin: 0; padding: 0; display: inline;">
+                                    <input type="hidden" name="id" value="@saz.Id" />
+                                    <input type="hidden" name="ativo" value="true" />
+                                    @{
+                                        var confirmPrompt = isCurrentlyActive 
+                                            ? $"Deseja realmente ativar a temporada {saz.Nome}?" 
+                                            : $"Deseja realmente ativar a temporada {saz.Nome} para as datas gravadas (de {saz.DataInicio.ToLocalTime().ToString("g")} até {saz.DataFim.ToLocalTime().ToString("g")})?";
+                                    }
+                                    <button type="submit" class="btn btn-gold btn-sm" 
+                                            onclick="return confirm('@confirmPrompt');">
+                                        <span class="material-icons">visibility</span> Ativar
+                                    </button>
+                                </form>
+                            }
+                            <a asp-action="EditSazonalidade" asp-route-id="@saz.Id" class="btn btn-primary btn-sm">
+                                <span class="material-icons">edit</span> Editar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <span class="material-icons font-lg text-cream">calendar_today</span>
+                <p>Nenhuma sazonalidade cadastrada no banco de dados.</p>
+            </div>
+        }
+    </div>
+</section>
+
+@section Scripts {
+<script>
+    /* ── Toast ── */
+    (function () {
+        const toast = document.getElementById('adminToast');
+        if (!toast) return;
+
+        // Auto-dismiss após 5 s
+        const timer = setTimeout(() => dismissToast(), 5000);
+        toast._timer = timer;
+    })();
+
+    function dismissToast() {
+        const toast = document.getElementById('adminToast');
+        if (!toast) return;
+        clearTimeout(toast._timer);
+        toast.classList.add('toast-hiding');
+        toast.addEventListener('animationend', () => toast.remove(), { once: true });
+    }
+
+    /* ── Toggle de visualização (grid / lista) com LocalStorage ── */
+    const STORAGE_KEY = 'sazonalidades_view';
+
+    function setView(mode) {
+        const grid   = document.getElementById('sazonalidadesGrid');
+        const btnGrid = document.getElementById('btnGrid');
+        const btnList = document.getElementById('btnList');
+
+        if (mode === 'list') {
+            grid.classList.add('list-view');
+            btnList.classList.add('active');
+            btnGrid.classList.remove('active');
+        } else {
+            grid.classList.remove('list-view');
+            btnGrid.classList.add('active');
+            btnList.classList.remove('active');
+        }
+
+        localStorage.setItem(STORAGE_KEY, mode);
+    }
+
+    // Aplicar preferência salva ao carregar
+    document.addEventListener('DOMContentLoaded', function () {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved === 'list') setView('list');
+    });
+</script>
+}
+

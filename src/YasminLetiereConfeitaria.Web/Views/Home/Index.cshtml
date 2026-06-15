@@ -1,0 +1,210 @@
+@inject YasminLetiereConfeitaria.Domain.Interfaces.ISazonalidadeRepository SazonalidadeRepo
+@{
+    ViewData["Title"] = "Início";
+    var dbSeasons = (await SazonalidadeRepo.GetAllAsync());
+    var agora = DateTime.UtcNow;
+    var hasActiveSeasons = dbSeasons.Any(s => s.Ativo && agora >= s.DataInicio && agora <= s.DataFim);
+}
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="container hero-content">
+        <span class="hero-tag">Campeã "Que Seja Doce" (GNT/Globoplay)</span>
+        <h1 class="hero-title">Yasmin Letiere</h1>
+        <p class="hero-subtitle">Alta Confeitaria Artesanal na Freguesia - Rio de Janeiro</p>
+        <p class="hero-desc">Doces clássicos e contemporâneos feitos sob medida com os melhores ingredientes belgas e nacionais para tornar seus momentos inesquecíveis.</p>
+        <div class="hero-ctas">
+            <a asp-action="Cardapio" class="btn btn-primary">Cardápio Fixo</a>
+            <a asp-action="Sazonal" class="btn btn-secondary sazonal-link @(hasActiveSeasons ? "" : "disabled-sazonal-link")">Encomendas de Páscoa & Natal</a>
+        </div>
+    </div>
+</section>
+
+<!-- Stats & Badges Bar -->
+<section class="stats-bar">
+    <div class="container stats-grid">
+        <div class="stat-card">
+            <span class="material-icons stat-icon">workspace_premium</span>
+            <h3>Vencedora na TV</h3>
+            <p>Campeã Que Seja Doce (T9 Ep 32)</p>
+        </div>
+        <div class="stat-card">
+            <span class="material-icons stat-icon">local_shipping</span>
+            <h3>+4.000 Entregas</h3>
+            <p>Pedidos entregues com carinho no RJ</p>
+        </div>
+        <div class="stat-card">
+            <span class="material-icons stat-icon">favorite</span>
+            <h3>Artesanal Premium</h3>
+            <p>Ingredientes nobres e muito afeto</p>
+        </div>
+    </div>
+</section>
+
+<!-- About Yasmin Section -->
+<section class="about-section container">
+    <div class="about-grid">
+        <div class="about-image-wrapper">
+            <div class="about-image-collage">
+                <div class="collage-main">
+                    <img src="/images/yasmin_perfil_show.jpg" alt="Yasmin Letiere no Que Seja Doce" class="img-main" />
+                    <div class="tv-tag">GNT & GLOBOPLAY</div>
+                </div>
+                <div class="collage-sub">
+                    <img src="/images/yasmin_vitoria_trofeu.jpg" alt="Yasmin Letiere Vitória" class="img-sub" />
+                    <div class="badge-victory">
+                        <span class="material-icons">workspace_premium</span>
+                        <span>Campeã!</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="about-text">
+            <span class="section-tag">Nossa História</span>
+            <h2 class="section-title">Da advocacia à paixão pelos doces</h2>
+            <p>A confeitaria sempre fez parte da vida de Yasmin. Após anos atuando na área do <strong>Direito</strong>, ela decidiu arriscar tudo, ouvir o coração e seguir o sonho de viver da gastronomia doce.</p>
+            <p>O reconhecimento veio de forma brilhante com a vitória no programa <strong>"Que Seja Doce"</strong> da GNT (Temporada 9, Episódio 32). Essa conquista chancelou o talento, a dedicação e o rigor técnico que ela aplica em cada receita.</p>
+            <p>Hoje, na Freguesia - Jacarepaguá, ela comanda seu próprio ateliê de confeitaria artesanal, entregando sonhos em forma de doces e espalhando doçura por todo o Rio de Janeiro.</p>
+            
+            <div class="award-watch-box">
+                <span class="watch-title">Assista à participação de Yasmin no programa:</span>
+                <div class="watch-links">
+                    <a href="https://globoplay.globo.com/v/11565953/" target="_blank" class="btn-watch globoplay">
+                        <span class="material-icons">play_circle_filled</span> Globoplay
+                    </a>
+                    <a href="https://tv.apple.com/us/episode/escalada/umc.cmc.6317va6vfzdxah4t0qli7fze7?showId=umc.cmc.18876eqshfdejkhuv6zukky9s" target="_blank" class="btn-watch appletv">
+                        <span class="material-icons">play_circle_filled</span> Apple TV+
+                    </a>
+                </div>
+            </div>
+
+            <div class="about-signature">
+                <span class="sig-name">Yasmin Letiere</span>
+                <span class="sig-title">Chef Confeiteira</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Gastronomic Fairs Section -->
+<section class="fairs-section">
+    <div class="container">
+        <div class="section-header text-center">
+            <span class="section-tag">Encontros & Sabores</span>
+            <h2 class="section-title" style="color: var(--primary-navy);">Próximas Feiras Gastronômicas</h2>
+            <p class="section-desc" style="color: var(--chocolate-dark);">Venha nos visitar, experimentar nossas delícias fresquinhas de perto e bater um papo com a chef Yasmin!</p>
+        </div>
+
+        @{
+            var feiras = ViewBag.Feiras as IEnumerable<YasminLetiereConfeitaria.Domain.Entities.FeiraGastronomica>;
+        }
+
+        @if (feiras == null || !feiras.Any())
+        {
+            <div class="fairs-empty-card text-center" style="background-color: var(--bg-cream-light); border: 2px dashed var(--border-ivory); border-radius: 16px; padding: 40px 30px; max-width: 650px; margin: 0 auto;">
+                <span class="material-icons fairs-empty-icon" style="font-size: 48px; color: var(--accent-gold); margin-bottom: 15px;">celebration</span>
+                <h3 style="font-family: var(--font-title); color: var(--primary-navy); margin-bottom: 10px; font-size: 20px;">No momento, Yasmin está concentrada no ateliê!</h3>
+                <p style="color: var(--chocolate-dark); font-size: 15px; margin-bottom: 25px;">Não temos feiras gastronômicas agendadas para os próximos dias. Acompanhe nosso Instagram <strong>@@yasminletiereconfeitaria</strong> para atualizações de novos eventos!</p>
+                <div class="fairs-empty-cta">
+                    <a href="https://instagram.com/yasminletiereconfeitaria" target="_blank" class="btn btn-secondary">
+                        <span class="material-icons" style="font-size: 18px; margin-right: 6px; vertical-align: middle;">photo_camera</span> Seguir no Instagram
+                    </a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="fairs-timeline" style="display: flex; flex-direction: column; gap: 24px; max-width: 800px; margin: 0 auto;">
+                @foreach (var feira in feiras)
+                {
+                    var dataLocal = feira.DataHora.ToLocalTime();
+                    var dia = dataLocal.ToString("dd");
+                    var mes = dataLocal.ToString("MMM").ToUpper().Replace(".", "");
+                    
+                    <div class="fair-card" style="display: flex; gap: 20px; background-color: white; border-radius: 16px; box-shadow: var(--shadow-sm); border: 1.5px solid var(--border-ivory); padding: 20px; transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);">
+                        <div class="fair-date-badge" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: var(--primary-navy); color: white; min-width: 80px; height: 80px; border-radius: 12px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(15, 50, 96, 0.15);">
+                            <span class="fair-day" style="font-family: var(--font-title); font-size: 28px; font-weight: 700; line-height: 1;">@dia</span>
+                            <span class="fair-month" style="font-size: 12px; font-weight: 600; letter-spacing: 1px; margin-top: 2px;">@mes</span>
+                        </div>
+                        <div class="fair-content" style="display: flex; flex-direction: column; justify-content: center; flex-grow: 1;">
+                            <h3 class="fair-name" style="font-family: var(--font-title); color: var(--primary-navy); font-size: 19px; font-weight: 600; margin: 0 0 6px 0;">@feira.Nome</h3>
+                            <div class="fair-details-row" style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 8px;">
+                                <span class="fair-detail-item" style="display: flex; align-items: center; gap: 4px; font-size: 14px; color: var(--chocolate-light);">
+                                    <span class="material-icons" style="font-size: 16px; color: var(--accent-gold);">schedule</span>
+                                    @dataLocal.ToString("HH:mm")h
+                                </span>
+                                <span class="fair-detail-item" style="display: flex; align-items: center; gap: 4px; font-size: 14px; color: var(--chocolate-light);">
+                                    <span class="material-icons" style="font-size: 16px; color: var(--accent-gold);">location_on</span>
+                                    @feira.Local
+                                </span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(feira.Descricao))
+                            {
+                                <p class="fair-description" style="color: var(--chocolate-dark); font-size: 14.5px; line-height: 1.5; margin: 4px 0 0 0;">@feira.Descricao</p>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<!-- Core Offerings / Highlights -->
+<section class="offerings-section">
+    <div class="container">
+        <div class="section-header text-center">
+            <span class="section-tag">Nossas Delícias</span>
+            <h2 class="section-title">O que produzimos no ateliê</h2>
+            <p class="section-desc">Doces desenvolvidos com técnicas clássicas e um apelo irresistível. Cada mordida é uma experiência única.</p>
+        </div>
+        
+        <div class="offerings-grid">
+            <div class="offering-card">
+                <div class="offering-img off-img-cake">
+                    <div class="off-overlay"></div>
+                    <span class="material-icons off-icon">cake</span>
+                </div>
+                <h3>Bolos Festivos</h3>
+                <p>Massa fofinha, recheios cremosos e decoração clássica e elegante para casamentos, aniversários e comemorações especiais.</p>
+                <a asp-action="Cardapio" class="btn-link">Ver Bolos <span class="material-icons">arrow_forward</span></a>
+            </div>
+            
+            <div class="offering-card">
+                <div class="offering-img off-img-sweets">
+                    <div class="off-overlay"></div>
+                    <span class="material-icons off-icon">cookie</span>
+                </div>
+                <h3>Docinhos Gourmet</h3>
+                <p>Brigadeiros com cacau belga, pistache siciliano, nozes e sabores finos enrolados perfeitamente para sua festa.</p>
+                <a asp-action="Cardapio" class="btn-link">Ver Docinhos <span class="material-icons">arrow_forward</span></a>
+            </div>
+            
+            <div class="offering-card">
+                <div class="offering-img off-img-cups">
+                    <div class="off-overlay"></div>
+                    <span class="material-icons off-icon">local_bar</span>
+                </div>
+                <h3>Copos da Felicidade</h3>
+                <p>Sobremesas individuais montadas em camadas de cremes especiais, frutas, chocolates nobres e crocantes.</p>
+                <a asp-action="Cardapio" class="btn-link">Ver Sobremesas <span class="material-icons">arrow_forward</span></a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action WhatsApp -->
+<section class="cta-banner">
+    <div class="container cta-flex">
+        <div class="cta-text">
+            <h2>Quer encomendar um doce especial hoje?</h2>
+            <p>Fale direto conosco pelo WhatsApp! Agendamos entregas e encomendas corporativas de forma rápida e prática.</p>
+        </div>
+        <div class="cta-button">
+            <a href="https://wa.me/message/3DAIKNWMQVTAM1" class="btn btn-gold btn-large" target="_blank">
+                <span class="material-icons">chat</span> Chame no WhatsApp
+            </a>
+        </div>
+    </div>
+</section>

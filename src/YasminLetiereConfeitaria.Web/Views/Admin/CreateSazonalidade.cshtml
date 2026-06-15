@@ -1,0 +1,177 @@
+@{
+    ViewData["Title"] = "Nova Temporada";
+    var successMsg = TempData["AdminMessage"] as string;
+    var errorMsg   = TempData["AdminError"]   as string;
+}
+
+@if (!string.IsNullOrEmpty(successMsg))
+{
+    <div id="adminToast" class="admin-toast toast-success" role="alert">
+        <span class="material-icons toast-icon">check_circle</span>
+        <div class="toast-body">
+            <div class="toast-title">Operação realizada!</div>
+            <div class="toast-msg">@successMsg</div>
+        </div>
+        <button class="toast-close" onclick="dismissToast()">✕</button>
+    </div>
+}
+@if (!string.IsNullOrEmpty(errorMsg))
+{
+    <div id="adminToast" class="admin-toast toast-error" role="alert">
+        <span class="material-icons toast-icon">error</span>
+        <div class="toast-body">
+            <div class="toast-title">Atenção!</div>
+            <div class="toast-msg">@errorMsg</div>
+        </div>
+        <button class="toast-close" onclick="dismissToast()">✕</button>
+    </div>
+}
+
+<section class="admin-page container">
+    <div class="admin-header-row">
+        <div>
+            <span class="section-tag">Temporadas Especiais</span>
+            <h1 class="page-title">Nova Temporada</h1>
+            <p>Crie um novo período sazonal para exibir um cardápio especial no site.</p>
+        </div>
+        <div class="header-actions">
+            <a asp-action="Sazonalidades" class="btn btn-secondary">
+                <span class="material-icons">arrow_back</span> Voltar
+            </a>
+        </div>
+    </div>
+
+    <div class="create-sazonalidade-wrapper">
+        <form asp-action="CreateSazonalidade" method="post" class="admin-form sazonalidade-card inactive-season">
+
+            <div class="season-card-header">
+                <div class="season-title-group">
+                    <span class="material-icons season-icon">calendar_month</span>
+                    <h3>Dados da Temporada</h3>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Nome da Temporada *</label>
+                    <input type="text" name="nome"
+                           minlength="3" maxlength="60" required
+                           placeholder="Ex: Festa Junina, Dia das Mães..."
+                           style="padding: 10px 12px; border: 1.5px solid var(--border-ivory); border-radius: 8px; font-size: 14px; font-family: var(--font-body); width: 100%; outline: none;" />
+                </div>
+
+                <div class="form-group">
+                    <label>Ícone / Emoji (Opcional)</label>
+                    <div class="emoji-picker-container" id="createEmojiContainer">
+                        <div class="emoji-selected-preview" onclick="toggleCreateEmojiPicker(event)">
+                            <span class="selected-emoji-char" id="createSelectedEmojiChar">✨</span>
+                            <span class="selected-emoji-label" id="createSelectedEmojiLabel">Especial / Outro</span>
+                            <span class="material-icons dropdown-arrow">arrow_drop_down</span>
+                        </div>
+                        <input type="hidden" name="icone" id="createIconeInput" value="✨" />
+                        
+                        <div class="emoji-picker-popover" id="createEmojiPopover" style="display: none;">
+                            <div class="emoji-picker-grid">
+                                <div class="emoji-item" data-emoji="🐇" data-label="Páscoa" onclick="selectCreateEmoji(this)">🐇</div>
+                                <div class="emoji-item" data-emoji="🎄" data-label="Natal" onclick="selectCreateEmoji(this)">🎄</div>
+                                <div class="emoji-item" data-emoji="💖" data-label="Dia dos Namorados" onclick="selectCreateEmoji(this)">💖</div>
+                                <div class="emoji-item" data-emoji="🌽" data-label="Festa Junina" onclick="selectCreateEmoji(this)">🌽</div>
+                                <div class="emoji-item" data-emoji="👩‍👦" data-label="Dia das Mães" onclick="selectCreateEmoji(this)">👩‍👦</div>
+                                <div class="emoji-item" data-emoji="🎃" data-label="Halloween" onclick="selectCreateEmoji(this)">🎃</div>
+                                <div class="emoji-item" data-emoji="🎭" data-label="Carnaval" onclick="selectCreateEmoji(this)">🎭</div>
+                                <div class="emoji-item" data-emoji="👨‍👦" data-label="Dia dos Pais" onclick="selectCreateEmoji(this)">👨‍👦</div>
+                                <div class="emoji-item" data-emoji="🎈" data-label="Dia das Crianças" onclick="selectCreateEmoji(this)">🎈</div>
+                                <div class="emoji-item" data-emoji="🥂" data-label="Réveillon" onclick="selectCreateEmoji(this)">🥂</div>
+                                <div class="emoji-item" data-emoji="💐" data-label="Dia da Mulher" onclick="selectCreateEmoji(this)">💐</div>
+                                <div class="emoji-item" data-emoji="🍰" data-label="Bolo / Doces" onclick="selectCreateEmoji(this)">🍰</div>
+                                <div class="emoji-item" data-emoji="🍫" data-label="Chocolate" onclick="selectCreateEmoji(this)">🍫</div>
+                                <div class="emoji-item" data-emoji="🍬" data-label="Docinhos" onclick="selectCreateEmoji(this)">🍬</div>
+                                <div class="emoji-item" data-emoji="🍕" data-label="Salgados" onclick="selectCreateEmoji(this)">🍕</div>
+                                <div class="emoji-item active" data-emoji="✨" data-label="Especial / Outro" onclick="selectCreateEmoji(this)">✨</div>
+                                <div class="emoji-item" data-emoji="" data-label="Sem ícone" onclick="selectCreateEmoji(this)">✕</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Data de Início *</label>
+                    <input type="datetime-local" name="dataInicio"
+                           min="2024-01-01T00:00" max="2035-12-31T23:59" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Data de Fim *</label>
+                    <input type="datetime-local" name="dataFim"
+                           min="2024-01-01T00:00" max="2035-12-31T23:59" required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Mensagem de Encerramento (Exibida quando expirado) *</label>
+                <textarea name="mensagemExpirada"
+                          minlength="20" maxlength="400" required
+                          placeholder="Ex: Agradecemos o interesse! As encomendas desta temporada já se encerraram, mas fique de olho para as próximas novidades!"></textarea>
+            </div>
+
+            <div class="season-card-footer">
+                <small class="text-muted">Produtos sazonais poderão ser vinculados após a criação.</small>
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <span class="material-icons">add_circle</span> Criar Temporada
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+<script>
+    (function () {
+        const toast = document.getElementById('adminToast');
+        if (!toast) return;
+        const timer = setTimeout(() => dismissToast(), 5000);
+        toast._timer = timer;
+    })();
+
+    function dismissToast() {
+        const toast = document.getElementById('adminToast');
+        if (!toast) return;
+        clearTimeout(toast._timer);
+        toast.classList.add('toast-hiding');
+        toast.addEventListener('animationend', () => toast.remove(), { once: true });
+    }
+
+    /* Emoji Picker Helpers */
+    function toggleCreateEmojiPicker(event) {
+        event.stopPropagation();
+        const popover = document.getElementById('createEmojiPopover');
+        popover.style.display = popover.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function selectCreateEmoji(element) {
+        const emoji = element.getAttribute('data-emoji');
+        const label = element.getAttribute('data-label');
+        
+        document.getElementById('createSelectedEmojiChar').innerText = emoji || '✕';
+        document.getElementById('createSelectedEmojiLabel').innerText = label;
+        document.getElementById('createIconeInput').value = emoji;
+        
+        // Remove active class from other items
+        const grid = element.parentNode;
+        grid.querySelectorAll('.emoji-item').forEach(item => item.classList.remove('active'));
+        element.classList.add('active');
+        
+        document.getElementById('createEmojiPopover').style.display = 'none';
+    }
+    
+    // Close popover when clicking outside
+    document.addEventListener('click', function(event) {
+        const popover = document.getElementById('createEmojiPopover');
+        if (popover && !event.target.closest('#createEmojiContainer')) {
+            popover.style.display = 'none';
+        }
+    });
+</script>
+}

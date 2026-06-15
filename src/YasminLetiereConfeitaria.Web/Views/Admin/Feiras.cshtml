@@ -1,0 +1,153 @@
+@model IEnumerable<YasminLetiereConfeitaria.Domain.Entities.FeiraGastronomica>
+
+@{
+    ViewData["Title"] = "Gestão de Feiras Gastronômicas";
+    var successMsg = TempData["AdminMessage"] as string;
+    var errorMsg   = TempData["AdminError"]   as string;
+}
+
+@* Toast de sucesso *@
+@if (!string.IsNullOrEmpty(successMsg))
+{
+    <div id="adminToast" class="admin-toast toast-success" role="alert" aria-live="assertive">
+        <span class="material-icons toast-icon">check_circle</span>
+        <div class="toast-body">
+            <div class="toast-title">Operação realizada!</div>
+            <div class="toast-msg">@successMsg</div>
+        </div>
+        <button class="toast-close" onclick="dismissToast()" aria-label="Fechar">✕</button>
+    </div>
+}
+
+@* Toast de erro *@
+@if (!string.IsNullOrEmpty(errorMsg))
+{
+    <div id="adminToast" class="admin-toast toast-error" role="alert" aria-live="assertive">
+        <span class="material-icons toast-icon">error</span>
+        <div class="toast-body">
+            <div class="toast-title">Atenção!</div>
+            <div class="toast-msg">@errorMsg</div>
+        </div>
+        <button class="toast-close" onclick="dismissToast()" aria-label="Fechar">✕</button>
+    </div>
+}
+
+<section class="admin-page container">
+    <div class="admin-header-row">
+        <div>
+            <span class="section-tag">Chef Confeiteira</span>
+            <h1 class="page-title">Gestão de Feiras Gastronômicas</h1>
+            <p>Gerencie as feiras e eventos gastronômicos nos quais o ateliê participa para exibir no portal dos clientes.</p>
+        </div>
+        <div class="header-actions" style="align-items: center;">
+            <a asp-action="CreateFeira" class="btn btn-primary">
+                <span class="material-icons">add</span> Nova Feira
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <span class="material-icons">arrow_back</span> Voltar ao Painel
+            </a>
+        </div>
+    </div>
+
+    <div class="admin-table-container">
+        @if (Model == null || !Model.Any())
+        {
+            <div class="text-center padded-block">
+                <span class="material-icons font-lg text-cream" style="font-size: 48px; color: var(--accent-gold); display: block; margin-bottom: 10px;">event_busy</span>
+                <p>Nenhuma feira ou evento cadastrado ainda.</p>
+            </div>
+        }
+        else
+        {
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Evento / Feira</th>
+                        <th>Data & Horário</th>
+                        <th>Local</th>
+                        <th>Status</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var feira in Model)
+                    {
+                        var isFuture = feira.DataHora >= DateTime.UtcNow;
+                        <tr>
+                            <td>
+                                <div>
+                                    <strong class="table-product-name">@feira.Nome</strong>
+                                    @if (!string.IsNullOrEmpty(feira.Descricao))
+                                    {
+                                        <p class="table-product-desc" style="max-width: 300px; margin: 4px 0 0 0; font-size: 13px; color: var(--chocolate-light);">@feira.Descricao</p>
+                                    }
+                                </div>
+                            </td>
+                            <td>
+                                <strong style="color: var(--primary-navy);">@feira.DataHora.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</strong>
+                                @if (isFuture)
+                                {
+                                    <span class="badge badge-incoming" style="font-size:10.5px; padding: 2px 8px; background-color: var(--accent-gold); color: white; border-radius: 6px; margin-left: 5px; font-weight: 600;">Agendado</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-past" style="font-size:10.5px; padding: 2px 8px; background-color: #b0b5bc; color: white; border-radius: 6px; margin-left: 5px; font-weight: 500;">Realizado</span>
+                                }
+                            </td>
+                            <td>
+                                <span title="@feira.Local" style="color: var(--chocolate-dark); font-size: 14px;">@feira.Local</span>
+                            </td>
+                            <td>
+                                <form asp-action="ToggleFeiraAtiva" asp-route-id="@feira.Id" method="post" style="display:inline;">
+                                    @if (feira.Ativo)
+                                    {
+                                        <button type="submit" class="status-btn active" title="Clique para inativar">
+                                            <span class="material-icons">check_circle</span> Ativo
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" class="status-btn inactive" title="Clique para ativar">
+                                            <span class="material-icons">cancel</span> Inativo
+                                        </button>
+                                    }
+                                </form>
+                            </td>
+                            <td class="table-actions">
+                                <div class="actions-wrapper">
+                                    <a asp-action="EditFeira" asp-route-id="@feira.Id" class="action-link edit" title="Editar">
+                                        <span class="material-icons">edit</span>
+                                    </a>
+                                    <form asp-action="DeleteFeira" asp-route-id="@feira.Id" method="post"
+                                          onsubmit="return confirm('Deseja realmente remover esta feira gastronômica do sistema?');" style="display:inline;">
+                                        <button type="submit" class="action-btn delete" title="Excluir">
+                                            <span class="material-icons">delete</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</section>
+
+@section Scripts {
+<script>
+    (function () {
+        const toast = document.getElementById('adminToast');
+        if (!toast) return;
+        toast._timer = setTimeout(() => dismissToast(), 5000);
+    })();
+
+    function dismissToast() {
+        const toast = document.getElementById('adminToast');
+        if (!toast) return;
+        clearTimeout(toast._timer);
+        toast.classList.add('toast-hiding');
+        toast.addEventListener('animationend', () => toast.remove(), { once: true });
+    }
+</script>
+}

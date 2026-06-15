@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/YasminLetiereConfeitaria.Domain/YasminLetiereConfeitaria.Domain.csproj" />
+    <Project Path="src/YasminLetiereConfeitaria.Application/YasminLetiereConfeitaria.Application.csproj" />
+    <Project Path="src/YasminLetiereConfeitaria.Infrastructure/YasminLetiereConfeitaria.Infrastructure.csproj" />
+    <Project Path="src/YasminLetiereConfeitaria.Presentation/YasminLetiereConfeitaria.Presentation.csproj" />
+    <Project Path="src/YasminLetiereConfeitaria.Web/YasminLetiereConfeitaria.Web.csproj" />
+  </Folder>
+</Solution>
