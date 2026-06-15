@@ -1,6 +1,7 @@
 @inject YasminLetiereConfeitaria.Domain.Interfaces.ISazonalidadeRepository SazonalidadeRepo
 @inject YasminLetiereConfeitaria.Domain.Interfaces.IRedeSocialRepository RedeSocialRepo
 @inject YasminLetiereConfeitaria.Domain.Interfaces.IConfiguracaoSistemaRepository ConfigRepo
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -22,6 +23,13 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
+    <environment include="Development,Staging,Hml">
+        <div class="env-banner">
+            <span class="material-icons" style="font-size: 16px; vertical-align: middle;">warning</span>
+            <span>Você está no ambiente de <strong>@(Env.EnvironmentName == "Staging" ? "HOMOLOGAÇÃO (HML)" : Env.EnvironmentName.ToUpper())</strong>. Alterações aqui não afetam o site oficial.</span>
+        </div>
+    </environment>
+
     <header class="main-header">
         <nav class="navbar container">
             <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
