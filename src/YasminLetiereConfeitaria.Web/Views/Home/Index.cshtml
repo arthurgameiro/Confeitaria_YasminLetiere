@@ -4,8 +4,16 @@
     ViewData["Title"] = "Início";
     var dbSeasons = (await SazonalidadeRepo.GetAllAsync());
     var agora = DateTime.UtcNow;
-    var hasActiveSeasons = dbSeasons.Any(s => s.Ativo && agora >= s.DataInicio && agora <= s.DataFim);
+    var activeSeasons = dbSeasons.Where(s => s.Ativo && agora >= s.DataInicio && agora <= s.DataFim).ToList();
+    var hasActiveSeasons = activeSeasons.Any();
     var depoimentos = await DepoimentoRepo.GetAtivosOrdenadasAsync();
+
+    // Texto dinâmico com base nos cardápios temporários ativos
+    string textoBotaoSazonal = "ENCOMENDAS SAZONAIS >";
+    if (hasActiveSeasons)
+    {
+        textoBotaoSazonal = "ENCOMENDAS DE " + string.Join(" & ", activeSeasons.Select(s => s.Nome.ToUpper())) + " >";
+    }
 }
 
 <!-- Hero Section -->
@@ -18,7 +26,7 @@
         <p class="hero-desc">Doces clássicos e contemporâneos feitos sob medida com os melhores ingredientes belgas e nacionais para tornar seus momentos inesquecíveis.<br><strong style="color:var(--primary-navy-dark);">Garanta seu pedido para as datas comemorativas - Vagas limitadas.</strong></p>
         <div class="hero-ctas">
             <a href="https://wa.me/message/3DAIKNWMQVTAM1" target="_blank" class="btn btn-primary">PEÇA NO WHATSAPP <i class="fa-brands fa-whatsapp" style="margin-left:4px;"></i></a>
-            <a asp-action="Sazonal" class="btn btn-secondary sazonal-link @(hasActiveSeasons ? "" : "disabled-sazonal-link")">ENCOMENDAS DE PÁSCOA & NATAL ></a>
+            <a asp-action="Sazonal" class="btn btn-secondary sazonal-link @(hasActiveSeasons ? "" : "disabled-sazonal-link")">@textoBotaoSazonal</a>
         </div>
     </div>
 </section>
