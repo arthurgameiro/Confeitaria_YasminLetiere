@@ -1,0 +1,258 @@
+@using YasminLetiereConfeitaria.Domain.Entities
+@model IEnumerable<Depoimento>
+@{
+    ViewData["Title"] = "Depoimentos e Avaliações";
+    var successMsg = TempData["AdminMessage"] as string;
+    var errorMsg   = TempData["AdminError"]   as string;
+}
+
+@* Toasts *@
+@if (!string.IsNullOrEmpty(successMsg))
+{
+    <div id="adminToast" class="admin-toast toast-success" role="alert" aria-live="assertive">
+        <span class="material-icons toast-icon">check_circle</span>
+        <div class="toast-body">
+            <div class="toast-title">Operação realizada!</div>
+            <div class="toast-msg">@successMsg</div>
+        </div>
+        <button class="toast-close" onclick="dismissToast()" aria-label="Fechar">✕</button>
+    </div>
+}
+@if (!string.IsNullOrEmpty(errorMsg))
+{
+    <div id="adminToast" class="admin-toast toast-error" role="alert" aria-live="assertive">
+        <span class="material-icons toast-icon">error</span>
+        <div class="toast-body">
+            <div class="toast-title">Atenção!</div>
+            <div class="toast-msg">@errorMsg</div>
+        </div>
+        <button class="toast-close" onclick="dismissToast()" aria-label="Fechar">✕</button>
+    </div>
+}
+
+<section class="admin-page container">
+    <div class="admin-header-row">
+        <div>
+            <span class="section-tag">Painel Admin</span>
+            <h1 class="page-title">Depoimentos & Avaliações</h1>
+            <p>Gerencie o que os clientes dizem sobre os seus produtos.</p>
+        </div>
+        <button class="btn btn-primary" onclick="abrirModalDepoimento()">
+            <span class="material-icons">add</span> Adicionar Depoimento
+        </button>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center padded-block">
+            <span class="material-icons" style="font-size: 48px; color: var(--accent-gold); display: block; margin-bottom: 10px;">reviews</span>
+            <p>Nenhuma avaliação cadastrada ainda.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Avaliação</th>
+                        <th>Fonte / Data</th>
+                        <th>Ordem</th>
+                        <th>Status</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var dep in Model)
+                    {
+                        <tr class="@(dep.Ativo ? "" : "row-inactive")">
+                            <td>
+                                <strong>@dep.NomeCliente</strong>
+                            </td>
+                            <td>
+                                <div style="display:flex; align-items:center; color: #fbbf24; margin-bottom:4px;">
+                                    @for (int i = 0; i < dep.Nota; i++) { <span class="material-icons" style="font-size: 1rem;">star</span> }
+                                    @for (int i = dep.Nota; i < 5; i++) { <span class="material-icons" style="font-size: 1rem;">star_border</span> }
+                                </div>
+                                <span class="url-preview" style="display:block; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="@dep.Texto">
+                                    "@dep.Texto"
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge" style="background: var(--bg-cream); color: var(--primary-navy);">@dep.Fonte</span>
+                                <br />
+                                <small>@dep.DataDepoimento.ToString("dd/MM/yyyy")</small>
+                            </td>
+                            <td>@dep.Ordem</td>
+                            <td>
+                                <form asp-action="ToggleDepoimento" asp-route-id="@dep.Id" method="post" style="display:inline;">
+                                    @if (dep.Ativo)
+                                    {
+                                        <button type="submit" class="status-btn active" title="Clique para desativar">
+                                            <span class="material-icons">check_circle</span> Ativo
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" class="status-btn inactive" title="Clique para ativar">
+                                            <span class="material-icons">cancel</span> Inativo
+                                        </button>
+                                    }
+                                </form>
+                            </td>
+                            <td class="table-actions">
+                                <div class="actions-wrapper">
+                                    <button class="action-link edit" title="Editar"
+                                            onclick="abrirModalEdicao('@dep.Id', '@Html.Raw(dep.NomeCliente.Replace("'", "\\'"))', '@Html.Raw(dep.Texto.Replace("'", "\\'").Replace("\n", "\\n").Replace("\r", ""))', @dep.Nota, '@Html.Raw(dep.Fonte ?? "")', '@dep.DataDepoimento.ToString("yyyy-MM-dd")', @dep.Ordem)">
+                                        <span class="material-icons">edit</span>
+                                    </button>
+                                    <form asp-action="DeleteDepoimento" asp-route-id="@dep.Id" method="post"
+                                          onsubmit="return confirm('Excluir esta avaliação permanentemente?');" style="display:inline;">
+                                        <button type="submit" class="action-btn delete" title="Excluir">
+                                            <span class="material-icons">delete</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+@* Modal: Criar / Editar Depoimento *@
+<div id="modalDepoimento" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="modalDepTitle">
+    <div class="modal-box" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3 id="modalDepTitle" class="modal-title">
+                <span class="material-icons">rate_review</span>
+                <span id="modalDepTitleText">Adicionar Avaliação</span>
+            </h3>
+            <button class="modal-close-btn" onclick="fecharModalDepoimento()" aria-label="Fechar">✕</button>
+        </div>
+
+        <form id="formDepoimento" method="post" class="admin-form">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="depId" />
+
+            <div class="form-group">
+                <label for="depNome">Nome do Cliente <span class="required">*</span></label>
+                <div class="input-with-icon">
+                    <span class="material-icons">person</span>
+                    <input type="text" id="depNome" name="nomeCliente" required maxlength="150" placeholder="Ex: Maria Joaquina" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="depTexto">Depoimento / Avaliação <span class="required">*</span></label>
+                <textarea id="depTexto" name="texto" rows="4" required maxlength="2000" placeholder="Digite o que o cliente achou dos produtos..." style="width: 100%; padding: 12px; border: 1px solid var(--border-ivory); border-radius: 10px; font-family: 'Montserrat', sans-serif; resize: vertical;"></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label for="depNota">Nota (Estrelas) <span class="required">*</span></label>
+                    <div class="input-with-icon">
+                        <span class="material-icons">star</span>
+                        <input type="number" id="depNota" name="nota" value="5" min="1" max="5" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="depFonte">Fonte / Origem</label>
+                    <div class="input-with-icon">
+                        <span class="material-icons">public</span>
+                        <input type="text" id="depFonte" name="fonte" maxlength="50" placeholder="Ex: Google, WhatsApp" />
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label for="depData">Data da Avaliação <span class="required">*</span></label>
+                    <div class="input-with-icon">
+                        <span class="material-icons">event</span>
+                        <input type="date" id="depData" name="dataDepoimento" required value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="depOrdem">Ordem de Exibição</label>
+                    <div class="input-with-icon">
+                        <span class="material-icons">sort</span>
+                        <input type="number" id="depOrdem" name="ordem" value="0" min="0" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions" style="margin-top: 10px;">
+                <button type="submit" class="btn btn-primary">
+                    <span class="material-icons">save</span> Salvar
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="fecharModalDepoimento()">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // ─── Toast ────────────────────────────────────────────────────
+    (function () {
+        const toast = document.getElementById('adminToast');
+        if (!toast) return;
+        toast._timer = setTimeout(() => dismissToast(), 5000);
+    })();
+
+    function dismissToast() {
+        const toast = document.getElementById('adminToast');
+        if (!toast) return;
+        clearTimeout(toast._timer);
+        toast.classList.add('toast-hiding');
+        toast.addEventListener('animationend', () => toast.remove(), { once: true });
+    }
+
+    // ─── Modal ────────────────────────────────────────────────────
+    function abrirModalDepoimento() {
+        document.getElementById('modalDepTitleText').textContent = 'Adicionar Avaliação';
+        document.getElementById('formDepoimento').action = '@Url.Action("CreateDepoimento", "Admin")';
+        
+        document.getElementById('depId').value = '';
+        document.getElementById('depNome').value = '';
+        document.getElementById('depTexto').value = '';
+        document.getElementById('depNota').value = '5';
+        document.getElementById('depFonte').value = 'Google';
+        document.getElementById('depData').value = new Date().toISOString().split('T')[0];
+        document.getElementById('depOrdem').value = '0';
+        
+        document.getElementById('modalDepoimento').style.display = 'flex';
+    }
+
+    function abrirModalEdicao(id, nome, texto, nota, fonte, data, ordem) {
+        document.getElementById('modalDepTitleText').textContent = 'Editar Avaliação';
+        document.getElementById('formDepoimento').action = '@Url.Action("EditDepoimento", "Admin")';
+        
+        document.getElementById('depId').value = id;
+        document.getElementById('depNome').value = nome;
+        document.getElementById('depTexto').value = texto;
+        document.getElementById('depNota').value = nota;
+        document.getElementById('depFonte').value = fonte;
+        document.getElementById('depData').value = data;
+        document.getElementById('depOrdem').value = ordem;
+        
+        document.getElementById('modalDepoimento').style.display = 'flex';
+    }
+
+    function fecharModalDepoimento() {
+        document.getElementById('modalDepoimento').style.display = 'none';
+    }
+
+    document.getElementById('modalDepoimento').addEventListener('click', function (e) {
+        if (e.target === this) fecharModalDepoimento();
+    });
+</script>
+}

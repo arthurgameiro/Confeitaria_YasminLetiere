@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using YasminLetiereConfeitaria.Infrastructure.Context;
@@ -11,9 +12,11 @@ using YasminLetiereConfeitaria.Infrastructure.Context;
 namespace YasminLetiereConfeitaria.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260615135430_AdicionarDepoimentos")]
+    partial class AdicionarDepoimentos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -457,7 +460,7 @@ namespace YasminLetiereConfeitaria.Infrastructure.Migrations
                             Ativo = true,
                             AtualizadoEm = new DateTime(2026, 6, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             CriadoEm = new DateTime(2026, 6, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Icone = "fa-brands fa-whatsapp",
+                            Icone = "chat",
                             Nome = "WhatsApp",
                             Ordem = 1,
                             Url = "https://wa.me/message/3DAIKNWMQVTAM1"
@@ -468,7 +471,7 @@ namespace YasminLetiereConfeitaria.Infrastructure.Migrations
                             Ativo = true,
                             AtualizadoEm = new DateTime(2026, 6, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             CriadoEm = new DateTime(2026, 6, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Icone = "fa-brands fa-instagram",
+                            Icone = "photo_camera",
                             Nome = "Instagram",
                             Ordem = 2,
                             Url = "https://instagram.com/yasminletiereconfeitaria"
@@ -479,7 +482,7 @@ namespace YasminLetiereConfeitaria.Infrastructure.Migrations
                             Ativo = true,
                             AtualizadoEm = new DateTime(2026, 6, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             CriadoEm = new DateTime(2026, 6, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Icone = "fa-brands fa-facebook-f",
+                            Icone = "thumb_up",
                             Nome = "Facebook",
                             Ordem = 3,
                             Url = "https://www.facebook.com/yasminletieredoces"
@@ -490,7 +493,7 @@ namespace YasminLetiereConfeitaria.Infrastructure.Migrations
                             Ativo = false,
                             AtualizadoEm = new DateTime(2026, 6, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             CriadoEm = new DateTime(2026, 6, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Icone = "fa-brands fa-tiktok",
+                            Icone = "play_circle",
                             Nome = "TikTok",
                             Ordem = 4,
                             Url = "https://tiktok.com/@yasminletiereconfeitaria"

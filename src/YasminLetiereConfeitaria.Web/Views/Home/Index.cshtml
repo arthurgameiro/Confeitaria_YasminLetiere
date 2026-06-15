@@ -1,22 +1,24 @@
 @inject YasminLetiereConfeitaria.Domain.Interfaces.ISazonalidadeRepository SazonalidadeRepo
+@inject YasminLetiereConfeitaria.Domain.Interfaces.IDepoimentoRepository DepoimentoRepo
 @{
     ViewData["Title"] = "Início";
     var dbSeasons = (await SazonalidadeRepo.GetAllAsync());
     var agora = DateTime.UtcNow;
     var hasActiveSeasons = dbSeasons.Any(s => s.Ativo && agora >= s.DataInicio && agora <= s.DataFim);
+    var depoimentos = await DepoimentoRepo.GetAtivosOrdenadasAsync();
 }
 
 <!-- Hero Section -->
 <section class="hero-section">
-    <div class="hero-overlay"></div>
-    <div class="container hero-content">
+    <div class="hero-image-side"></div>
+    <div class="hero-content-side">
         <span class="hero-tag">Campeã "Que Seja Doce" (GNT/Globoplay)</span>
         <h1 class="hero-title">Yasmin Letiere</h1>
-        <p class="hero-subtitle">Alta Confeitaria Artesanal na Freguesia - Rio de Janeiro</p>
-        <p class="hero-desc">Doces clássicos e contemporâneos feitos sob medida com os melhores ingredientes belgas e nacionais para tornar seus momentos inesquecíveis.</p>
+        <p class="hero-subtitle">Alta Confeitaria Artesanal na Freguesia - <span style="color:var(--primary-navy);text-decoration:underline;text-underline-offset:4px;">Rio de Janeiro</span> 📍</p>
+        <p class="hero-desc">Doces clássicos e contemporâneos feitos sob medida com os melhores ingredientes belgas e nacionais para tornar seus momentos inesquecíveis.<br><strong style="color:var(--primary-navy-dark);">Garanta seu pedido para as datas comemorativas - Vagas limitadas.</strong></p>
         <div class="hero-ctas">
-            <a asp-action="Cardapio" class="btn btn-primary">Cardápio Fixo</a>
-            <a asp-action="Sazonal" class="btn btn-secondary sazonal-link @(hasActiveSeasons ? "" : "disabled-sazonal-link")">Encomendas de Páscoa & Natal</a>
+            <a href="https://wa.me/message/3DAIKNWMQVTAM1" target="_blank" class="btn btn-primary">PEÇA NO WHATSAPP <i class="fa-brands fa-whatsapp" style="margin-left:4px;"></i></a>
+            <a asp-action="Sazonal" class="btn btn-secondary sazonal-link @(hasActiveSeasons ? "" : "disabled-sazonal-link")">ENCOMENDAS DE PÁSCOA & NATAL ></a>
         </div>
     </div>
 </section>
@@ -25,17 +27,17 @@
 <section class="stats-bar">
     <div class="container stats-grid">
         <div class="stat-card">
-            <span class="material-icons stat-icon">workspace_premium</span>
+            <div class="stat-image-wrapper"><img src="/images/yasmin_perfil_show.jpg" class="stat-image"/></div>
             <h3>Vencedora na TV</h3>
-            <p>Campeã Que Seja Doce (T9 Ep 32)</p>
+            <p>Campeã Que Seja Doce (T9 Ep.32)</p>
         </div>
         <div class="stat-card">
-            <span class="material-icons stat-icon">local_shipping</span>
+            <div class="stat-image-wrapper"><img src="/images/mapa_rio.png" class="stat-image"/></div>
             <h3>+4.000 Entregas</h3>
             <p>Pedidos entregues com carinho no RJ</p>
         </div>
         <div class="stat-card">
-            <span class="material-icons stat-icon">favorite</span>
+            <div class="stat-image-wrapper"><img src="/images/chocolate_chips.png" class="stat-image"/></div>
             <h3>Artesanal Premium</h3>
             <p>Ingredientes nobres e muito afeto</p>
         </div>
@@ -193,6 +195,55 @@
         </div>
     </div>
 </section>
+
+@if (depoimentos.Any())
+{
+    <!-- Depoimentos / Avaliações -->
+    <section class="testimonials-section" style="background-color: var(--bg-cream); padding: 80px 0;">
+        <div class="container">
+            <div class="section-header text-center">
+                <span class="section-tag">Depoimentos</span>
+                <h2 class="section-title">O que dizem nossos clientes</h2>
+                <p class="section-desc">Avaliações reais de quem já experimentou e se apaixonou pelas nossas criações.</p>
+            </div>
+
+            <div class="testimonials-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 40px;">
+                @foreach (var dep in depoimentos)
+                {
+                    <div class="testimonial-card" style="background: #fff; padding: 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(15, 50, 96, 0.05); position: relative;">
+                        @if (!string.IsNullOrEmpty(dep.Fonte) && dep.Fonte.Contains("Google", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <span class="material-icons" style="position: absolute; top: 20px; right: 20px; color: #4285F4; font-size: 1.5rem;" title="Google">public</span>
+                        }
+                        else
+                        {
+                            <span class="material-icons" style="position: absolute; top: 20px; right: 20px; color: var(--accent-gold); font-size: 1.5rem; opacity: 0.6;">format_quote</span>
+                        }
+
+                        <div style="display:flex; align-items:center; color: #fbbf24; margin-bottom: 15px;">
+                            @for (int i = 0; i < dep.Nota; i++) { <span class="material-icons" style="font-size: 1.2rem;">star</span> }
+                            @for (int i = dep.Nota; i < 5; i++) { <span class="material-icons" style="font-size: 1.2rem;">star_border</span> }
+                        </div>
+
+                        <p style="font-style: italic; color: var(--chocolate-dark); margin-bottom: 20px; line-height: 1.6; font-size: 0.95rem;">
+                            "@dep.Texto"
+                        </p>
+
+                        <div style="display: flex; align-items: center; gap: 12px; margin-top: auto;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary-navy); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 1.1rem;">
+                                @(dep.NomeCliente.Substring(0, 1).ToUpper())
+                            </div>
+                            <div>
+                                <h4 style="margin: 0; font-family: 'Montserrat', sans-serif; font-size: 0.9rem; color: var(--primary-navy);">@dep.NomeCliente</h4>
+                                <small style="color: var(--chocolate-light); font-size: 0.75rem;">@dep.DataDepoimento.ToString("MMMM 'de' yyyy", new System.Globalization.CultureInfo("pt-BR"))</small>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
 
 <!-- Call to Action WhatsApp -->
 <section class="cta-banner">

@@ -9,14 +9,14 @@
 
     var iconesPredefinidos = new[]
     {
-        new { Valor = "chat",          Label = "WhatsApp" },
-        new { Valor = "photo_camera",  Label = "Instagram" },
-        new { Valor = "play_circle",   Label = "TikTok" },
-        new { Valor = "thumb_up",      Label = "Facebook" },
-        new { Valor = "video_library", Label = "YouTube" },
-        new { Valor = "push_pin",      Label = "Pinterest" },
-        new { Valor = "language",      Label = "Website" },
-        new { Valor = "mail",          Label = "E-mail" },
+        new { Valor = "fa-brands fa-whatsapp",          Label = "WhatsApp",  IsFA = true },
+        new { Valor = "fa-brands fa-instagram",         Label = "Instagram", IsFA = true },
+        new { Valor = "fa-brands fa-tiktok",            Label = "TikTok",    IsFA = true },
+        new { Valor = "fa-brands fa-facebook-f",        Label = "Facebook",  IsFA = true },
+        new { Valor = "fa-brands fa-youtube",           Label = "YouTube",   IsFA = true },
+        new { Valor = "fa-brands fa-pinterest",         Label = "Pinterest", IsFA = true },
+        new { Valor = "language",                       Label = "Website",   IsFA = false },
+        new { Valor = "mail",                           Label = "E-mail",    IsFA = false },
     };
 }
 
@@ -60,8 +60,8 @@
             <div class="config-card-header">
                 <span class="material-icons config-card-icon">auto_awesome</span>
                 <div>
-                    <h2 class="config-card-title">Cardápio Temporário</h2>
-                    <p class="config-card-desc">Controla se o menu "Cardápio Sazonal" aparece no portal, independente das temporadas individuais.</p>
+                    <h2 class="config-card-title">Cardápios Temporários</h2>
+                    <p class="config-card-desc">Controla se o menu "Cardápios Temporários" aparece no portal, independente das temporadas individuais.</p>
                 </div>
             </div>
 
@@ -73,12 +73,12 @@
                     @if (catalogoSazonalAtivo)
                     {
                         <strong class="badge-active-text">Ativo</strong>
-                        <span> — O menu Cardápio Sazonal está visível no portal.</span>
+                        <span> — O menu Cardápios Temporários está visível no portal.</span>
                     }
                     else
                     {
                         <strong class="badge-inactive-text">Inativo</strong>
-                        <span> — O menu Cardápio Sazonal está oculto no portal.</span>
+                        <span> — O menu Cardápios Temporários está oculto no portal.</span>
                     }
                 </span>
             </div>
@@ -87,7 +87,7 @@
                 @if (catalogoSazonalAtivo)
                 {
                     <button type="submit" name="ativo" value="false" class="btn btn-danger-outline"
-                            onclick="return confirm('Deseja ocultar o Cardápio Sazonal do portal? Os clientes não verão mais o menu sazonal.')">
+                            onclick="return confirm('Deseja ocultar os Cardápios Temporários do portal? Os clientes não verão mais o menu sazonal.')">
                         <span class="material-icons">visibility_off</span> Desativar no Portal
                     </button>
                 }
@@ -137,7 +137,16 @@
                         @foreach (var rede in redes)
                         {
                             <tr class="@(rede.Ativo ? "" : "row-inactive")">
-                                <td><span class="material-icons rede-icon-preview">@rede.Icone</span></td>
+                                <td>
+                                    @if (rede.Icone.StartsWith("fa-"))
+                                    {
+                                        <i class="@rede.Icone rede-icon-preview" style="font-size: 24px; vertical-align: middle;"></i>
+                                    }
+                                    else
+                                    {
+                                        <span class="material-icons rede-icon-preview">@rede.Icone</span>
+                                    }
+                                </td>
                                 <td><strong class="table-product-name">@rede.Nome</strong></td>
                                 <td>
                                     <a href="@rede.Url" target="_blank" class="url-preview">
@@ -225,12 +234,19 @@
                     {
                         <button type="button" class="icone-preset-btn" data-valor="@ic.Valor"
                                 title="@ic.Label" onclick="selecionarIcone('@ic.Valor', this)">
-                            <span class="material-icons">@ic.Valor</span>
+                            @if (ic.IsFA)
+                            {
+                                <i class="@ic.Valor" style="font-size: 24px; margin-bottom: 4px;"></i>
+                            }
+                            else
+                            {
+                                <span class="material-icons">@ic.Valor</span>
+                            }
                             <span class="icone-preset-label">@ic.Label</span>
                         </button>
                     }
                 </div>
-                <input type="hidden" id="redeIcone" name="icone" value="chat" />
+                <input type="hidden" id="redeIcone" name="icone" value="fa-brands fa-whatsapp" />
             </div>
 
             <div class="form-group">
@@ -277,9 +293,9 @@
         document.getElementById('redeId').value = '';
         document.getElementById('redeNome').value = '';
         document.getElementById('redeUrl').value = '';
-        document.getElementById('redeIcone').value = 'chat';
+        document.getElementById('redeIcone').value = 'fa-brands fa-whatsapp';
         document.getElementById('redeOrdem').value = '0';
-        selecionarIconeValor('chat');
+        selecionarIconeValor('fa-brands fa-whatsapp');
         document.getElementById('modalRedeSocial').style.display = 'flex';
     }
 

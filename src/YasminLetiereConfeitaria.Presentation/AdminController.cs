@@ -20,6 +20,7 @@ namespace YasminLetiereConfeitaria.Presentation
         IFeiraGastronomicaRepository feiraGastronomicaRepository,
         IRedeSocialRepository redeSocialRepository,
         IConfiguracaoSistemaRepository configuracaoRepository,
+        IDepoimentoRepository depoimentoRepository,
         IWebHostEnvironment webHostEnvironment) : Controller
     {
         private readonly IProductRepository _productRepository = productRepository;
@@ -28,6 +29,7 @@ namespace YasminLetiereConfeitaria.Presentation
         private readonly IFeiraGastronomicaRepository _feiraGastronomicaRepository = feiraGastronomicaRepository;
         private readonly IRedeSocialRepository _redeSocialRepository = redeSocialRepository;
         private readonly IConfiguracaoSistemaRepository _configuracaoRepository = configuracaoRepository;
+        private readonly IDepoimentoRepository _depoimentoRepository = depoimentoRepository;
         private readonly IWebHostEnvironment _webHostEnvironment = webHostEnvironment;
 
         public async Task<IActionResult> Index()
@@ -493,6 +495,80 @@ namespace YasminLetiereConfeitaria.Presentation
             await _redeSocialRepository.DeleteAsync(id);
             TempData["AdminMessage"] = $"Rede social '{rede.Nome}' removida com sucesso!";
             return RedirectToAction(nameof(Configuracoes));
+        }
+
+        // ─── DEPOIMENTOS / AVALIAÇÕES ──────────────────────────────────────────────
+
+        [HttpGet]
+        public async Task<IActionResult> Depoimentos()
+        {
+            var depoimentos = (await _depoimentoRepository.GetAllAsync())
+                .OrderBy(d => d.Ordem)
+                .ThenByDescending(d => d.DataDepoimento)
+                .ToList();
+            
+            return View(depoimentos);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateDepoimento(string nomeCliente, string texto, int nota, string fonte, DateTime dataDepoimento, int ordem)
+        {
+            if (string.IsNullOrWhiteSpace(nomeCliente) || string.IsNullOrWhiteSpace(texto))
+            {
+                TempData["AdminError"] = "Preencha o nome do cliente e o texto da avaliação.";
+                return RedirectToAction(nameof(Depoimentos));
+            }
+
+            var dep = new Depoimento(nomeCliente.Trim(), texto.Trim(), nota, fonte?.Trim(), dataDepoimento, ordem);
+            await _depoimentoRepository.AddAsync(dep);
+
+            TempData["AdminMessage"] = "Avaliação adicionada com sucesso!";
+            return RedirectToAction(nameof(Depoimentos));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditDepoimento(Guid id, string nomeCliente, string texto, int nota, string fonte, DateTime dataDepoimento, int ordem)
+        {
+            var dep = await _depoimentoRepository.GetByIdAsync(id);
+            if (dep == null) return NotFound();
+
+            if (string.IsNullOrWhiteSpace(nomeCliente) || string.IsNullOrWhiteSpace(texto))
+            {
+                TempData["AdminError"] = "Preencha o nome do cliente e o texto da avaliação.";
+                return RedirectToAction(nameof(Depoimentos));
+            }
+
+            dep.Atualizar(nomeCliente.Trim(), texto.Trim(), nota, fonte?.Trim(), dataDepoimento, ordem);
+            await _depoimentoRepository.UpdateAsync(dep);
+
+            TempData["AdminMessage"] = "Avaliação atualizada com sucesso!";
+            return RedirectToAction(nameof(Depoimentos));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ToggleDepoimento(Guid id)
+        {
+            var dep = await _depoimentoRepository.GetByIdAsync(id);
+            if (dep == null) return NotFound();
+
+            dep.SetAtivo(!dep.Ativo);
+            await _depoimentoRepository.UpdateAsync(dep);
+
+            TempData["AdminMessage"] = dep.Ativo
+                ? $"Avaliação de '{dep.NomeCliente}' ativada."
+                : $"Avaliação de '{dep.NomeCliente}' desativada.";
+            return RedirectToAction(nameof(Depoimentos));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteDepoimento(Guid id)
+        {
+            var dep = await _depoimentoRepository.GetByIdAsync(id);
+            if (dep == null) return NotFound();
+
+            await _depoimentoRepository.DeleteAsync(id);
+            TempData["AdminMessage"] = $"Avaliação de '{dep.NomeCliente}' excluída!";
+            return RedirectToAction(nameof(Depoimentos));
         }
     }
 }

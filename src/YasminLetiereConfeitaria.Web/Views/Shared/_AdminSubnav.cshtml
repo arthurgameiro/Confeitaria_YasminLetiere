@@ -107,6 +107,23 @@
                 </ul>
             </li>
 
+            @* Depoimentos *@
+            <li class="admin-subnav-group @(IsGroupActive("Depoimentos") ? "group-active" : "")">
+                <a asp-controller="Admin" asp-action="Depoimentos"
+                   class="admin-subnav-link @(IsGroupActive("Depoimentos") ? "active" : "")">
+                    <span class="material-icons">rate_review</span>
+                    <span>Depoimentos</span>
+                </a>
+                <ul class="admin-subnav-submenu">
+                    <li>
+                        <a asp-controller="Admin" asp-action="Depoimentos"
+                           class="@(IsActive("Depoimentos") ? "active" : "")">
+                            <span class="material-icons">list</span> Ver Todos
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
         </ul>
 
         <div class="admin-subnav-actions">
